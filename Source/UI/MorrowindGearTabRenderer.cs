@@ -16,8 +16,8 @@ public static class MorrowindGearTabRenderer
     private const float CategoryTabsHeight = 26f;
     private const float FooterHeight = 42f;
     private const float LeftPaneWidth = 258f;
-    private const float InventoryCellSize = 96f;
-    private const float InventoryCellPadding = 6f;
+    private const float InventoryCellSize = 58f;
+    private const float InventoryCellPadding = 5f;
 
     public static void Draw(Rect rect, Pawn pawn)
     {
@@ -42,7 +42,7 @@ public static class MorrowindGearTabRenderer
         Rect leftRect = new(contentRect.x, contentRect.y, LeftPaneWidth, contentRect.height);
         Rect rightRect = new(leftRect.xMax + 10f, contentRect.y, contentRect.width - LeftPaneWidth - 10f, contentRect.height);
 
-        DrawLeftPane(leftRect, pawn, state);
+        DrawLeftPane(leftRect, pawn);
 
         switch (state.activeTab)
         {
@@ -54,6 +54,9 @@ public static class MorrowindGearTabRenderer
                 break;
             case MorrowindInventoryTab.Stats:
                 DrawStatsPane(rightRect, pawn, state);
+                break;
+            case MorrowindInventoryTab.Roles:
+                DrawRolesPane(rightRect, pawn);
                 break;
         }
 
@@ -88,15 +91,16 @@ public static class MorrowindGearTabRenderer
 
     private static void DrawModeTabs(Rect rect, MorrowindInventoryState state)
     {
-        string[] labels = { "Inventory", "Equipment", "Stats" };
+        string[] labels = { "Inventory", "Equipment", "Stats", "Roles" };
         MorrowindInventoryTab[] tabs =
         {
             MorrowindInventoryTab.Inventory,
             MorrowindInventoryTab.Equipment,
             MorrowindInventoryTab.Stats,
+            MorrowindInventoryTab.Roles,
         };
 
-        float tabWidth = 118f;
+        float tabWidth = 104f;
         for (int i = 0; i < tabs.Length; i++)
         {
             Rect tabRect = new(rect.x + i * (tabWidth + 6f), rect.y, tabWidth, rect.height);
@@ -116,16 +120,13 @@ public static class MorrowindGearTabRenderer
         DrawLabelCentered(rect, label, active ? MorrowindUiResources.ActiveTabText : MorrowindUiResources.InactiveTabText);
     }
 
-    private static void DrawLeftPane(Rect rect, Pawn pawn, MorrowindInventoryState state)
+    private static void DrawLeftPane(Rect rect, Pawn pawn)
     {
         MorrowindWindowSkin.DrawPanel(rect);
-        Rect portraitRect = new(rect.x + 10f, rect.y + 10f, rect.width - 20f, 286f);
+        Rect portraitRect = new(rect.x + 10f, rect.y + 10f, rect.width - 20f, 332f);
         DrawPortrait(portraitRect, pawn);
 
-        Rect roleRect = new(rect.x + 10f, portraitRect.yMax + 8f, rect.width - 20f, 88f);
-        DrawRolePanel(roleRect, pawn);
-
-        Rect infoRect = new(rect.x + 10f, roleRect.yMax + 8f, rect.width - 20f, rect.height - (roleRect.yMax - rect.y) - 18f);
+        Rect infoRect = new(rect.x + 10f, portraitRect.yMax + 8f, rect.width - 20f, rect.height - (portraitRect.yMax - rect.y) - 18f);
         DrawInfoPanel(infoRect, pawn);
     }
 
@@ -150,41 +151,20 @@ public static class MorrowindGearTabRenderer
         GUI.DrawTexture(inner, portrait, ScaleMode.ScaleToFit, true);
     }
 
-    private static void DrawRolePanel(Rect rect, Pawn pawn)
-    {
-        MorrowindWindowSkin.DrawPanel(rect);
-        var component = MorrowindMenusTradingGameComponent.Instance;
-        InventoryTraderRole manual = component?.GetManualRoleOverride(pawn) ?? InventoryTraderRole.Auto;
-        InventoryTraderRole effective = component?.GetEffectiveRole(pawn) ?? InventoryTraderRole.Resources;
-        string roleText = manual == InventoryTraderRole.Auto ? $"Auto: {RoleLabel(effective)}" : $"Manual: {RoleLabel(manual)}";
-
-        DrawLabelLeft(new Rect(rect.x + 8f, rect.y + 4f, rect.width - 16f, 22f), "Trader role", MorrowindUiResources.TextPrimary);
-        Rect leftButton = new(rect.x + 8f, rect.y + 30f, 26f, 24f);
-        Rect valueRect = new(rect.x + 40f, rect.y + 28f, rect.width - 80f, 28f);
-        Rect rightButton = new(rect.xMax - 34f, rect.y + 30f, 26f, 24f);
-        if (DrawActionButton(leftButton, "<"))
-        {
-            component?.SetManualRoleOverride(pawn, PreviousRole(manual));
-        }
-        DrawLabelCentered(valueRect, roleText, MorrowindUiResources.TextPrimary);
-        if (DrawActionButton(rightButton, ">"))
-        {
-            component?.SetManualRoleOverride(pawn, NextRole(manual));
-        }
-
-        DrawLabelLeft(new Rect(rect.x + 8f, rect.y + 58f, rect.width - 16f, 22f), "Auto uses highest skill. Change it here if needed.", MorrowindUiResources.TextMuted);
-    }
-
     private static void DrawInfoPanel(Rect rect, Pawn pawn)
     {
         MorrowindWindowSkin.DrawPanel(rect);
         Rect inner = rect.ContractedBy(8f);
+        var component = MorrowindMenusTradingGameComponent.Instance;
+        InventoryTraderRole effectiveRole = component?.GetEffectiveRole(pawn) ?? InventoryTraderRole.Resources;
         DrawLabelLeft(new Rect(inner.x, inner.y, inner.width, 22f), $"Equipped: {GatherEquippedThings(pawn).Count}", MorrowindUiResources.TextPrimary);
         DrawLabelLeft(new Rect(inner.x, inner.y + 24f, inner.width, 22f), $"Inventory stacks: {pawn.inventory?.innerContainer?.Count ?? 0}", MorrowindUiResources.TextPrimary);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 48f, inner.width, 22f), $"Food stacks: {pawn.inventory?.innerContainer?.Count(IsFoodThing) ?? 0}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 72f, inner.width, 22f), $"Weapon stacks: {pawn.inventory?.innerContainer?.Count(t => t.def.IsWeapon) ?? 0}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 96f, inner.width, 22f), $"Medicine stacks: {pawn.inventory?.innerContainer?.Count(t => t.def.IsMedicine) ?? 0}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 120f, inner.width, 22f), $"Armor: {Mathf.RoundToInt((pawn.GetStatValue(StatDefOf.ArmorRating_Sharp) + pawn.GetStatValue(StatDefOf.ArmorRating_Blunt)) * 50f)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 48f, inner.width, 22f), $"Role: {RoleLabel(effectiveRole)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 72f, inner.width, 44f), $"Allowed: {component?.AllowedRoleSummary(pawn) ?? "Food, Weapons, Medicine, Apparel, Resources, Misc"}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 118f, inner.width, 22f), $"Food stacks: {pawn.inventory?.innerContainer?.Count(IsFoodThing) ?? 0}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 142f, inner.width, 22f), $"Weapon stacks: {pawn.inventory?.innerContainer?.Count(t => t.def.IsWeapon) ?? 0}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 166f, inner.width, 22f), $"Medicine stacks: {pawn.inventory?.innerContainer?.Count(t => t.def.IsMedicine) ?? 0}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 190f, inner.width, 22f), $"Armor: {Mathf.RoundToInt((pawn.GetStatValue(StatDefOf.ArmorRating_Sharp) + pawn.GetStatValue(StatDefOf.ArmorRating_Blunt)) * 50f)}", MorrowindUiResources.TextMuted);
     }
 
     private static void DrawInventoryPane(Rect rect, Pawn pawn, MorrowindInventoryState state)
@@ -194,7 +174,7 @@ public static class MorrowindGearTabRenderer
         Rect categoryRect = new(inner.x, inner.y, inner.width, CategoryTabsHeight);
         DrawCategoryTabs(categoryRect, state);
 
-        float columnWidth = 118f;
+        float columnWidth = 86f;
         Rect bodyRect = new(inner.x, categoryRect.yMax + 6f, inner.width, inner.height - CategoryTabsHeight - 20f);
         Rect equippedRect = new(bodyRect.x, bodyRect.y, columnWidth, bodyRect.height);
         Rect gridRect = new(equippedRect.xMax + 8f, bodyRect.y, bodyRect.width - columnWidth - 8f, bodyRect.height);
@@ -211,19 +191,20 @@ public static class MorrowindGearTabRenderer
 
     private static void DrawCategoryTabs(Rect rect, MorrowindInventoryState state)
     {
-        (MorrowindItemCategory category, string label)[] tabs =
+        (MorrowindItemCategory category, string label, float width)[] tabs =
         {
-            (MorrowindItemCategory.All, "All"),
-            (MorrowindItemCategory.Weapons, "Weapons"),
-            (MorrowindItemCategory.Clothing, "Clothing"),
-            (MorrowindItemCategory.Medicine, "Magic"),
-            (MorrowindItemCategory.Misc, "Misc"),
+            (MorrowindItemCategory.All, "All", 56f),
+            (MorrowindItemCategory.Food, "Food", 64f),
+            (MorrowindItemCategory.Medicine, "Medicine", 86f),
+            (MorrowindItemCategory.Weapons, "Weapons", 82f),
+            (MorrowindItemCategory.Apparel, "Apparel", 78f),
+            (MorrowindItemCategory.Resources, "Resources", 88f),
+            (MorrowindItemCategory.Misc, "Misc", 64f),
         };
 
         float x = rect.x;
-        foreach ((MorrowindItemCategory category, string label) in tabs)
+        foreach ((MorrowindItemCategory category, string label, float width) in tabs)
         {
-            float width = label.Length > 7 ? 90f : 72f;
             Rect tabRect = new(x, rect.y, width, rect.height);
             bool active = state.activeCategory == category;
             DrawTab(tabRect, label, active);
@@ -262,20 +243,24 @@ public static class MorrowindGearTabRenderer
         return category switch
         {
             MorrowindItemCategory.All => true,
+            MorrowindItemCategory.Food => IsFoodThing(thing),
+            MorrowindItemCategory.Medicine => thing.def.IsMedicine,
             MorrowindItemCategory.Weapons => thing.def.IsWeapon,
-            MorrowindItemCategory.Clothing => thing is Apparel,
-            MorrowindItemCategory.Medicine => thing.def.IsMedicine || thing.def.ingestible != null,
-            MorrowindItemCategory.Misc => !thing.def.IsWeapon && thing is not Apparel && !thing.def.IsMedicine && thing.def.ingestible == null,
+            MorrowindItemCategory.Apparel => thing is Apparel,
+            MorrowindItemCategory.Resources => IsResourceThing(thing),
+            MorrowindItemCategory.Misc => !IsFoodThing(thing) && !thing.def.IsMedicine && !thing.def.IsWeapon && thing is not Apparel && !IsResourceThing(thing),
             _ => true,
         };
     }
 
     private static int CategorySortIndex(Thing thing)
     {
-        if (thing.def.IsWeapon) return 0;
-        if (thing is Apparel) return 1;
-        if (thing.def.IsMedicine || thing.def.ingestible != null) return 2;
-        return 3;
+        if (IsFoodThing(thing)) return 0;
+        if (thing.def.IsMedicine) return 1;
+        if (thing.def.IsWeapon) return 2;
+        if (thing is Apparel) return 3;
+        if (IsResourceThing(thing)) return 4;
+        return 5;
     }
 
     private static void DrawInventoryGrid(Rect rect, List<MorrowindInventoryEntry> entries, MorrowindInventoryState state, Pawn pawn)
@@ -295,7 +280,7 @@ public static class MorrowindGearTabRenderer
             Rect cell = new(col * (InventoryCellSize + InventoryCellPadding), row * (InventoryCellSize + InventoryCellPadding), InventoryCellSize, InventoryCellSize);
             bool selected = state.selectedThingId == thing.thingIDNumber && state.selectionSource == entry.source;
             MorrowindWindowSkin.DrawSlot(cell, selected);
-            DrawThingIcon(cell.ContractedBy(6f), thing);
+            DrawThingIcon(cell.ContractedBy(4f), thing);
             if (thing.stackCount > 1)
             {
                 Text.Anchor = TextAnchor.LowerRight;
@@ -322,7 +307,7 @@ public static class MorrowindGearTabRenderer
         MorrowindWindowSkin.DrawPanel(rect);
         DrawLabelCentered(new Rect(rect.x, rect.y + 2f, rect.width, 20f), "Equipped", MorrowindUiResources.TextPrimary);
         Rect listRect = new(rect.x + 6f, rect.y + 24f, rect.width - 12f, rect.height - 30f);
-        float cellSize = rect.width - 14f;
+        float cellSize = Mathf.Min(68f, rect.width - 14f);
         float y = 0f;
         foreach (MorrowindInventoryEntry entry in entries)
         {
@@ -330,7 +315,7 @@ public static class MorrowindGearTabRenderer
             bool selected = state.selectedThingId == entry.thing.thingIDNumber && state.selectionSource == entry.source;
             MorrowindWindowSkin.DrawSlot(cell, selected);
             MorrowindWindowSkin.DrawEquippedOutline(cell);
-            DrawThingIcon(cell.ContractedBy(8f), entry.thing);
+            DrawThingIcon(cell.ContractedBy(6f), entry.thing);
             TooltipHandler.TipRegion(cell, $"[Equipped] {entry.thing.LabelCap}");
             if (Widgets.ButtonInvisible(cell))
             {
@@ -409,6 +394,7 @@ public static class MorrowindGearTabRenderer
         DrawLabelLeft(slotLabelRect, slot, MorrowindUiResources.TextMuted);
         Rect iconRect = new(rect.x + 94f, rect.y + 2f, 42f, 42f);
         MorrowindWindowSkin.DrawSlot(iconRect, selected);
+        MorrowindWindowSkin.DrawEquippedOutline(iconRect);
         DrawThingIcon(iconRect.ContractedBy(4f), thing);
         Rect labelRect = new(rect.x + 144f, rect.y, rect.width - 144f, rect.height);
         DrawLabelLeft(labelRect, thing.LabelCap, MorrowindUiResources.TextPrimary);
@@ -417,6 +403,70 @@ public static class MorrowindGearTabRenderer
         {
             state.Select(thing, source);
         }
+    }
+
+    private static void DrawRolesPane(Rect rect, Pawn pawn)
+    {
+        MorrowindWindowSkin.DrawPanel(rect);
+        Rect inner = rect.ContractedBy(10f);
+        var component = MorrowindMenusTradingGameComponent.Instance;
+        InventoryTraderRole manual = component?.GetManualRoleOverride(pawn) ?? InventoryTraderRole.Auto;
+        InventoryTraderRole effective = component?.GetEffectiveRole(pawn) ?? InventoryTraderRole.Resources;
+
+        DrawLabelLeft(new Rect(inner.x, inner.y, inner.width, 24f), "Trading role", MorrowindUiResources.TextPrimary);
+        Rect leftButton = new(inner.x, inner.y + 30f, 30f, 28f);
+        Rect valueRect = new(inner.x + 36f, inner.y + 28f, inner.width - 72f, 32f);
+        Rect rightButton = new(inner.xMax - 30f, inner.y + 30f, 30f, 28f);
+        if (DrawActionButton(leftButton, "<"))
+        {
+            component?.SetManualRoleOverride(pawn, PreviousRole(manual));
+        }
+        DrawLabelCentered(valueRect, manual == InventoryTraderRole.Auto ? $"Auto: {RoleLabel(effective)}" : $"Manual: {RoleLabel(manual)}", MorrowindUiResources.TextPrimary);
+        if (DrawActionButton(rightButton, ">"))
+        {
+            component?.SetManualRoleOverride(pawn, NextRole(manual));
+        }
+
+        DrawLabelLeft(new Rect(inner.x, inner.y + 70f, inner.width, 22f), "Allowed pickup categories", MorrowindUiResources.TextPrimary);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 94f, inner.width, 22f), "These decide what this pawn auto collects into inventory.", MorrowindUiResources.TextMuted);
+
+        InventoryTraderRole[] roles =
+        {
+            InventoryTraderRole.Food,
+            InventoryTraderRole.Weapons,
+            InventoryTraderRole.Medicine,
+            InventoryTraderRole.Apparel,
+            InventoryTraderRole.Resources,
+            InventoryTraderRole.Misc,
+        };
+
+        float buttonWidth = (inner.width - 12f) / 2f;
+        for (int i = 0; i < roles.Length; i++)
+        {
+            int row = i / 2;
+            int col = i % 2;
+            Rect buttonRect = new(inner.x + col * (buttonWidth + 12f), inner.y + 126f + row * 42f, buttonWidth, 34f);
+            bool allowed = component?.IsRoleAllowed(pawn, roles[i]) ?? true;
+            if (DrawToggleButton(buttonRect, RoleLabel(roles[i]), allowed))
+            {
+                component?.ToggleRoleAllowed(pawn, roles[i]);
+            }
+        }
+
+        Rect noteRect = new(inner.x, inner.y + 264f, inner.width, 78f);
+        MorrowindWindowSkin.DrawPanel(noteRect, inset: 3f);
+        DrawLabelLeft(noteRect.ContractedBy(8f), "Auto uses the pawn's highest skill until you override it. Allowed categories are treated like personal stockpile filters for this pawn.", MorrowindUiResources.TextMuted);
+    }
+
+    private static bool DrawToggleButton(Rect rect, string label, bool enabledState)
+    {
+        MorrowindWindowSkin.DrawPanel(rect, inset: 2f);
+        if (enabledState)
+        {
+            MorrowindWindowSkin.DrawEquippedOutline(rect);
+        }
+        DrawLabelCentered(rect, enabledState ? $"{label}: On" : $"{label}: Off", enabledState ? MorrowindUiResources.TextPrimary : MorrowindUiResources.TextMuted);
+        return Widgets.ButtonInvisible(rect);
     }
 
     private static void DrawStatsPane(Rect rect, Pawn pawn, MorrowindInventoryState state)
@@ -589,6 +639,16 @@ public static class MorrowindGearTabRenderer
     private static bool IsFoodThing(Thing thing)
     {
         return thing?.def?.ingestible != null;
+    }
+
+    private static bool IsResourceThing(Thing thing)
+    {
+        if (thing?.def == null)
+        {
+            return false;
+        }
+
+        return thing.def.IsStuff || (thing.def.EverHaulable && thing.def.category == ThingCategory.Item && thing.def.stackLimit > 1 && !IsFoodThing(thing) && !thing.def.IsMedicine && !thing.def.IsWeapon && thing is not Apparel);
     }
 
     private static void DrawThingIcon(Rect rect, Thing thing)

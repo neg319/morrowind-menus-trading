@@ -23,15 +23,29 @@ public static class MorrowindWindowSkin
 
     public static void DrawSlot(Rect rect, bool selected)
     {
-        DrawDarkFill(rect, MorrowindUiResources.SlotShade);
-        GUI.color = Color.white;
-        GUI.DrawTexture(rect, MorrowindUiResources.SlotFrame, ScaleMode.StretchToFill, true);
+        Color old = GUI.color;
+        GUI.color = MorrowindUiResources.SlotShade;
+        GUI.DrawTexture(rect, BaseContent.WhiteTex);
+
+        GUI.color = MorrowindUiResources.SlotBorderDark;
+        GUI.DrawTexture(new Rect(rect.x, rect.y, rect.width, 1f), BaseContent.WhiteTex);
+        GUI.DrawTexture(new Rect(rect.x, rect.yMax - 1f, rect.width, 1f), BaseContent.WhiteTex);
+        GUI.DrawTexture(new Rect(rect.x, rect.y, 1f, rect.height), BaseContent.WhiteTex);
+        GUI.DrawTexture(new Rect(rect.xMax - 1f, rect.y, 1f, rect.height), BaseContent.WhiteTex);
+
+        GUI.color = MorrowindUiResources.SlotBorderLight;
+        GUI.DrawTexture(new Rect(rect.x + 1f, rect.y + 1f, rect.width - 2f, 1f), BaseContent.WhiteTex);
+        GUI.DrawTexture(new Rect(rect.x + 1f, rect.yMax - 2f, rect.width - 2f, 1f), BaseContent.WhiteTex);
+        GUI.DrawTexture(new Rect(rect.x + 1f, rect.y + 1f, 1f, rect.height - 2f), BaseContent.WhiteTex);
+        GUI.DrawTexture(new Rect(rect.xMax - 2f, rect.y + 1f, 1f, rect.height - 2f), BaseContent.WhiteTex);
+
         if (selected)
         {
             GUI.color = MorrowindUiResources.SelectedOverlay;
             GUI.DrawTexture(rect.ContractedBy(2f), BaseContent.WhiteTex);
-            GUI.color = Color.white;
         }
+
+        GUI.color = old;
     }
 
     public static void DrawEquippedOutline(Rect rect)

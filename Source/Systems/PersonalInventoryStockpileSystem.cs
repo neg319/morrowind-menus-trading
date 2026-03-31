@@ -69,10 +69,12 @@ public static class PersonalInventoryStockpileSystem
     private static void TryAutoStashAllowedItems(Map map, List<Pawn> colonists)
     {
         int moved = 0;
-        int transferLimit = Mathf.Max(4, MorrowindMenusTradingMod.Settings.personalStockpileTransferBatch);
+        int transferLimit = Mathf.Max(8, MorrowindMenusTradingMod.Settings.personalStockpileTransferBatch);
         List<Thing> allThings = map.listerThings.AllThings
             .Where(t => ShouldStash(t, map))
-            .OrderByDescending(t => t.MarketValue)
+            .OrderByDescending(t => CarrierDemandScore(colonists, t))
+            .ThenByDescending(t => t.stackCount)
+            .ThenByDescending(t => t.MarketValue)
             .ToList();
 
         foreach (Thing thing in allThings)
@@ -401,7 +403,7 @@ public static class PersonalInventoryStockpileSystem
     {
         float massPerItem = Mathf.Max(0.01f, SafeMass(thing));
         return colonists
-            .Where(p => RemainingMass(p) >= massPerItem)
+            .Where(p => RemainingMass(p) >= massPerItem && CanAutoCollect(p, thing))
             .OrderByDescending(p => CarrierScore(p, thing))
             .ThenByDescending(RemainingMass)
             .ThenBy(p => p.PositionHeld.DistanceToSquared(thing.PositionHeld))
@@ -425,9 +427,13 @@ public static class PersonalInventoryStockpileSystem
             return -999f;
         }
 
-        InventoryTraderRole role = MorrowindMenusTrading.Components.MorrowindMenusTradingGameComponent.Instance?.GetEffectiveRole(pawn) ?? MorrowindMenusTrading.Components.InventoryTraderRole.Resources;
+        InventoryTraderRole role = MorrowindMenusTradingGameComponent.Instance?.GetEffectiveRole(pawn) ?? InventoryTraderRole.Resources;
         InventoryTraderRole preferred = RoleForThing(def);
-        float score = role == preferred ? 100f : role == MorrowindMenusTrading.Components.InventoryTraderRole.None ? -50f : 10f;
+        float score = role == preferred ? 120f : role == InventoryTraderRole.None ? -200f : 10f;
+        if (MorrowindMenusTradingGameComponent.Instance?.IsRoleAllowed(pawn, preferred) == true)
+        {
+            score += 40f;
+        }
         score += RemainingMass(pawn) * 0.1f;
         return score;
     }
@@ -439,29 +445,75 @@ public static class PersonalInventoryStockpileSystem
             return false;
         }
 
-        InventoryTraderRole effective = MorrowindMenusTrading.Components.MorrowindMenusTradingGameComponent.Instance?.GetEffectiveRole(pawn) ?? MorrowindMenusTrading.Components.InventoryTraderRole.Resources;
         InventoryTraderRole preferred = RoleForThing(thing);
-        if (effective == preferred)
+        if (CanAutoCollect(pawn, thing))
         {
             return true;
         }
 
-        if (preferred == MorrowindMenusTrading.Components.InventoryTraderRole.Food && NeedsFoodFromOthers(pawn))
+        if (preferred == InventoryTraderRole.Food && NeedsFoodFromOthers(pawn))
         {
             return true;
         }
 
-        if (preferred == MorrowindMenusTrading.Components.InventoryTraderRole.Weapons && NeedsWeaponFromOthers(pawn))
+        if (preferred == InventoryTraderRole.Weapons && NeedsWeaponFromOthers(pawn))
         {
             return true;
         }
 
-        if (preferred == MorrowindMenusTrading.Components.InventoryTraderRole.Medicine && NeedsMedicineFromOthers(pawn))
+        if (preferred == InventoryTraderRole.Medicine && NeedsMedicineFromOthers(pawn))
         {
             return true;
         }
 
-        return effective != MorrowindMenusTrading.Components.InventoryTraderRole.None && CountThingInInventory(pawn, thing.def) == 0;
+        return false;
+    }
+
+
+    private static bool CanAutoCollect(Pawn pawn, Thing thing)
+    {
+        if (pawn?.inventory?.innerContainer == null || thing == null)
+        {
+            return false;
+        }
+
+        InventoryTraderRole preferred = RoleForThing(thing);
+        var component = MorrowindMenusTradingGameComponent.Instance;
+        if (preferred == InventoryTraderRole.None)
+        {
+            return false;
+        }
+
+        if (component?.IsRoleAllowed(pawn, preferred) == true)
+        {
+            return true;
+        }
+
+        return component?.GetEffectiveRole(pawn) == preferred;
+    }
+
+    private static float CarrierDemandScore(List<Pawn> colonists, Thing thing)
+    {
+        if (thing == null)
+        {
+            return -999f;
+        }
+
+        InventoryTraderRole role = RoleForThing(thing);
+        float demand = colonists.Count(p => CanAutoCollect(p, thing)) * 20f;
+        if (role == InventoryTraderRole.Food && colonists.Any(NeedsFoodFromOthers))
+        {
+            demand += 200f;
+        }
+        if (role == InventoryTraderRole.Weapons && colonists.Any(NeedsWeaponFromOthers))
+        {
+            demand += 160f;
+        }
+        if (role == InventoryTraderRole.Medicine && colonists.Any(NeedsMedicineFromOthers))
+        {
+            demand += 180f;
+        }
+        return demand;
     }
 
     private static float RemainingMass(Pawn pawn)

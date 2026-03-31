@@ -8,6 +8,7 @@ public enum MorrowindInventoryTab
     Inventory,
     Equipment,
     Stats,
+    Roles,
 }
 
 public enum MorrowindSelectionSource
@@ -20,9 +21,11 @@ public enum MorrowindSelectionSource
 public enum MorrowindItemCategory
 {
     All,
-    Weapons,
-    Clothing,
+    Food,
     Medicine,
+    Weapons,
+    Apparel,
+    Resources,
     Misc,
 }
 

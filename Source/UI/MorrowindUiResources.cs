@@ -31,7 +31,9 @@ public static class MorrowindUiResources
     public static readonly Color BackgroundTint = new(0.01f, 0.01f, 0.01f, 0.98f);
     public static readonly Color PanelShade = new(0.005f, 0.005f, 0.005f, 0.96f);
     public static readonly Color PanelShadeSoft = new(0.02f, 0.02f, 0.02f, 0.90f);
-    public static readonly Color SlotShade = new(0f, 0f, 0f, 0.78f);
+    public static readonly Color SlotShade = new(0f, 0f, 0f, 0.88f);
+    public static readonly Color SlotBorderDark = new(0.07f, 0.06f, 0.05f, 1f);
+    public static readonly Color SlotBorderLight = new(0.15f, 0.13f, 0.10f, 1f);
     public static readonly Color SelectedOverlay = new(0.96f, 0.83f, 0.34f, 0.16f);
     public static readonly Color ActiveTabText = new(0.44f, 0.48f, 0.86f);
     public static readonly Color CarryWeightFill = new(0.12f, 0.18f, 0.42f, 0.78f);
