@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using MorrowindMenusTrading.Buildings;
 using MorrowindMenusTrading.Components;
 using MorrowindMenusTrading.Systems;
 using UnityEngine;
@@ -174,7 +175,7 @@ public static class MorrowindGearTabRenderer
         Rect categoryRect = new(inner.x, inner.y, inner.width, CategoryTabsHeight);
         DrawCategoryTabs(categoryRect, state);
 
-        float columnWidth = 86f;
+        float columnWidth = 82f;
         Rect bodyRect = new(inner.x, categoryRect.yMax + 6f, inner.width, inner.height - CategoryTabsHeight - 20f);
         Rect equippedRect = new(bodyRect.x, bodyRect.y, columnWidth, bodyRect.height);
         Rect gridRect = new(equippedRect.xMax + 8f, bodyRect.y, bodyRect.width - columnWidth - 8f, bodyRect.height);
@@ -304,10 +305,12 @@ public static class MorrowindGearTabRenderer
 
     private static void DrawEquippedColumn(Rect rect, List<MorrowindInventoryEntry> entries, MorrowindInventoryState state)
     {
-        MorrowindWindowSkin.DrawPanel(rect);
+        MorrowindWindowSkin.DrawFlatPanel(rect, MorrowindUiResources.PanelShade);
         DrawLabelCentered(new Rect(rect.x, rect.y + 2f, rect.width, 20f), "Equipped", MorrowindUiResources.TextPrimary);
-        Rect listRect = new(rect.x + 6f, rect.y + 24f, rect.width - 12f, rect.height - 30f);
-        float cellSize = Mathf.Min(68f, rect.width - 14f);
+        Rect dividerRect = new(rect.xMax - 1f, rect.y + 4f, 1f, rect.height - 8f);
+        MorrowindWindowSkin.DrawSubtleDivider(dividerRect);
+        Rect listRect = new(rect.x + 5f, rect.y + 24f, rect.width - 10f, rect.height - 30f);
+        float cellSize = Mathf.Min(66f, rect.width - 10f);
         float y = 0f;
         foreach (MorrowindInventoryEntry entry in entries)
         {
@@ -427,8 +430,14 @@ public static class MorrowindGearTabRenderer
             component?.SetManualRoleOverride(pawn, NextRole(manual));
         }
 
+        Building_TraderSpot nearestSpot = pawn.MapHeld?.listerThings?.AllThings?.OfType<Building_TraderSpot>()
+            .Where(s => s.Spawned && s.SpotRole == effective)
+            .OrderBy(s => s.PositionHeld.DistanceToSquared(pawn.PositionHeld))
+            .FirstOrDefault();
+
         DrawLabelLeft(new Rect(inner.x, inner.y + 70f, inner.width, 22f), "Allowed pickup categories", MorrowindUiResources.TextPrimary);
         DrawLabelLeft(new Rect(inner.x, inner.y + 94f, inner.width, 22f), "These decide what this pawn auto collects into inventory.", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 116f, inner.width, 22f), nearestSpot == null ? "Trading spot: none nearby" : $"Trading spot: {nearestSpot.LabelCap}", MorrowindUiResources.TextMuted);
 
         InventoryTraderRole[] roles =
         {
@@ -445,7 +454,7 @@ public static class MorrowindGearTabRenderer
         {
             int row = i / 2;
             int col = i % 2;
-            Rect buttonRect = new(inner.x + col * (buttonWidth + 12f), inner.y + 126f + row * 42f, buttonWidth, 34f);
+            Rect buttonRect = new(inner.x + col * (buttonWidth + 12f), inner.y + 152f + row * 42f, buttonWidth, 34f);
             bool allowed = component?.IsRoleAllowed(pawn, roles[i]) ?? true;
             if (DrawToggleButton(buttonRect, RoleLabel(roles[i]), allowed))
             {
@@ -453,9 +462,9 @@ public static class MorrowindGearTabRenderer
             }
         }
 
-        Rect noteRect = new(inner.x, inner.y + 264f, inner.width, 78f);
+        Rect noteRect = new(inner.x, inner.y + 290f, inner.width, 90f);
         MorrowindWindowSkin.DrawPanel(noteRect, inset: 3f);
-        DrawLabelLeft(noteRect.ContractedBy(8f), "Auto uses the pawn's highest skill until you override it. Allowed categories are treated like personal stockpile filters for this pawn.", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(noteRect.ContractedBy(8f), "Auto uses the pawn's highest skill until you override it. Allowed categories act like personal stockpile filters. If a matching trader spot exists, idle traders gather there between normal needs and jobs.", MorrowindUiResources.TextMuted);
     }
 
     private static bool DrawToggleButton(Rect rect, string label, bool enabledState)
@@ -547,7 +556,7 @@ public static class MorrowindGearTabRenderer
         return source switch
         {
             MorrowindSelectionSource.Inventory when selectedThing is Apparel => "Wear",
-            MorrowindSelectionSource.Inventory when selectedThing is ThingWithComps => "Equip",
+            MorrowindSelectionSource.Inventory when selectedThing.def != null && selectedThing.def.IsWeapon => "Equip",
             MorrowindSelectionSource.Inventory => "Use",
             MorrowindSelectionSource.Equipment => "Unequip",
             MorrowindSelectionSource.Apparel => "Unequip",
@@ -578,7 +587,7 @@ public static class MorrowindGearTabRenderer
                 {
                     if (pawn.inventory?.innerContainer?.Remove(apparel) == true) pawn.apparel?.Wear(apparel, false, false);
                 }
-                else if (selectedThing is ThingWithComps equippable)
+                else if (selectedThing.def != null && selectedThing.def.IsWeapon && selectedThing is ThingWithComps equippable)
                 {
                     ThingWithComps primary = pawn.equipment?.Primary;
                     if (primary != null && pawn.inventory?.innerContainer != null) pawn.equipment.TryTransferEquipmentToContainer(primary, pawn.inventory.innerContainer);

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <ThingDef ParentName="BuildingBase">
+    <defName>MMT_FoodTradingSpot</defName>
+    <label>food trading spot</label>
+    <description>An optional idle position for a pawn whose inventory role focuses on food. Traders still eat, sleep, and do normal work when needed.</description>
+    <thingClass>MorrowindMenusTrading.Buildings.Building_TraderSpot</thingClass>
+    <category>Building</category>
+    <altitudeLayer>Building</altitudeLayer>
+    <drawerType>RealtimeOnly</drawerType>
+    <graphicData>
+      <texPath>UI/Morrowind/slot_frame</texPath>
+      <graphicClass>Graphic_Single</graphicClass>
+      <drawSize>(1,1)</drawSize>
+      <color>(0.75,0.55,0.20)</color>
+    </graphicData>
+    <size>(1,1)</size>
+    <selectable>true</selectable>
+    <passability>PassThroughOnly</passability>
+    <fillPercent>0.01</fillPercent>
+    <useHitPoints>false</useHitPoints>
+    <designationCategory>Structure</designationCategory>
+    <thingCategories />
+    <statBases>
+      <MaxHitPoints>10</MaxHitPoints>
+      <WorkToBuild>25</WorkToBuild>
+      <Mass>0.2</Mass>
+      <MarketValue>1</MarketValue>
+      <Beauty>0</Beauty>
+      <Flammability>0</Flammability>
+    </statBases>
+    <costList>
+      <Steel>1</Steel>
+    </costList>
+    <building>
+      <isEdifice>false</isEdifice>
+    </building>
+    <terrainAffordanceNeeded>Light</terrainAffordanceNeeded>
+  </ThingDef>
+
+  <ThingDef ParentName="MMT_FoodTradingSpot">
+    <defName>MMT_MedicineTradingSpot</defName>
+    <label>medicine trading spot</label>
+    <description>An optional idle position for a pawn whose inventory role focuses on medicine.</description>
+  </ThingDef>
+
+  <ThingDef ParentName="MMT_FoodTradingSpot">
+    <defName>MMT_WeaponsTradingSpot</defName>
+    <label>weapons trading spot</label>
+    <description>An optional idle position for a pawn whose inventory role focuses on weapons.</description>
+  </ThingDef>
+
+  <ThingDef ParentName="MMT_FoodTradingSpot">
+    <defName>MMT_ApparelTradingSpot</defName>
+    <label>apparel trading spot</label>
+    <description>An optional idle position for a pawn whose inventory role focuses on apparel.</description>
+  </ThingDef>
+
+  <ThingDef ParentName="MMT_FoodTradingSpot">
+    <defName>MMT_ResourcesTradingSpot</defName>
+    <label>resources trading spot</label>
+    <description>An optional idle position for a pawn whose inventory role focuses on building resources and bulk goods.</description>
+  </ThingDef>
+
+  <ThingDef ParentName="MMT_FoodTradingSpot">
+    <defName>MMT_MiscTradingSpot</defName>
+    <label>misc trading spot</label>
+    <description>An optional idle position for a pawn whose inventory role focuses on mixed goods.</description>
+  </ThingDef>
+</Defs>

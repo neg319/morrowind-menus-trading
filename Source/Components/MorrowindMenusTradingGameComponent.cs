@@ -20,7 +20,7 @@ public enum InventoryTraderRole
 
 public sealed class MorrowindMenusTradingGameComponent : GameComponent
 {
-    private const int StockpileCheckInterval = 30;
+    private const int StockpileCheckInterval = 6;
     private const int DefaultAllowedRoleMask =
         (1 << (int)InventoryTraderRole.Food) |
         (1 << (int)InventoryTraderRole.Weapons) |

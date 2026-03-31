@@ -17,3 +17,6 @@ This RimWorld 1.6 mod project is now focused entirely on two systems:
 ## Build
 
 Use the included GitHub Actions workflow to compile the DLL and package the mod for RimWorld 1.6.
+
+
+Latest update: stronger pawn-first, role-favored personal inventory filling with stricter allowed-category checks and broader storage scanning.

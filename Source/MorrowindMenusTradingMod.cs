@@ -27,6 +27,7 @@ public sealed class MorrowindMenusTradingMod : Mod
         listing.CheckboxLabeled("MIL_AutoShareFood".Translate(), ref Settings.autoShareFood);
         listing.CheckboxLabeled("MIL_AutoShareWeapons".Translate(), ref Settings.autoShareWeapons);
         listing.CheckboxLabeled("MIL_AutoShareMedicine".Translate(), ref Settings.autoShareMedicine);
+        listing.CheckboxLabeled("MIL_UseTraderSpots".Translate(), ref Settings.useTraderSpots);
 
         listing.Label($"{"MIL_CarryMultiplier".Translate()}: {Settings.personalInventoryCapacityMultiplier:F1}x");
         Settings.personalInventoryCapacityMultiplier = listing.Slider(Settings.personalInventoryCapacityMultiplier, 2f, 100f);

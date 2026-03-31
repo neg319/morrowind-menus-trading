@@ -64,6 +64,19 @@ public static class MorrowindWindowSkin
         DrawDarkFill(rect, MorrowindUiResources.PanelShade);
     }
 
+    public static void DrawFlatPanel(Rect rect, Color? fillOverride = null)
+    {
+        DrawDarkFill(rect, fillOverride ?? MorrowindUiResources.PanelShadeSoft);
+    }
+
+    public static void DrawSubtleDivider(Rect rect)
+    {
+        Color old = GUI.color;
+        GUI.color = MorrowindUiResources.GoldDark;
+        GUI.DrawTexture(rect, BaseContent.WhiteTex);
+        GUI.color = old;
+    }
+
     private static void DrawDarkFill(Rect rect, Color color)
     {
         Color old = GUI.color;

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <MIL_ModName>Morrowind Menus &amp; Trading</MIL_ModName>
+  <MIL_MorrowindInventory>Enable Morrowind style inventory UI</MIL_MorrowindInventory>
+  <MIL_GlobalWindows>Skin large windows with the Morrowind theme</MIL_GlobalWindows>
+  <MIL_PersonalStockpileMode>Use personal inventory stockpiles</MIL_PersonalStockpileMode>
+  <MIL_ShowTradeMessages>Show pawn to pawn trade notices</MIL_ShowTradeMessages>
+  <MIL_AutoShareFood>Auto share food</MIL_AutoShareFood>
+  <MIL_AutoShareWeapons>Auto share weapons</MIL_AutoShareWeapons>
+  <MIL_AutoShareMedicine>Auto share medicine</MIL_AutoShareMedicine>
+  <MIL_UseTraderSpots>Use optional trader spots when available</MIL_UseTraderSpots>
+  <MIL_CarryMultiplier>Personal carry multiplier</MIL_CarryMultiplier>
+  <MIL_StockpileRadius>Personal stockpile pickup radius</MIL_StockpileRadius>
+  <MIL_TransferBatch>Auto stash batch</MIL_TransferBatch>
+  <MIL_Reset>Reset to defaults</MIL_Reset>
+  <MIL_SettingsBlurb>This version focuses entirely on the Morrowind style inventory, role based personal stockpiles, inventory first logistics, optional trader spots, and visible pawn to pawn trading notices.</MIL_SettingsBlurb>
+</LanguageData>
