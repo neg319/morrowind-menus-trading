@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>Morrowind Menus &amp; Trading</name>
+  <author>OpenAI for Johnny Berry</author>
+  <packageId>vyberware.morrowindmenusandtrading</packageId>
+  <supportedVersions>
+    <li>1.6</li>
+  </supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>brrainz.harmony</packageId>
+      <displayName>Harmony</displayName>
+      <downloadUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077</downloadUrl>
+    </li>
+  </modDependencies>
+  <description>Morrowind Menus &amp; Trading replaces the pawn inventory UI with a Morrowind inspired layout and turns colonist personal inventories into large, shared, stockpile like logistics pools. Colonists auto stash nearby haulables into personal inventories, prefer category traders, share food, weapons, medicine, and building resources, and count carried resources in the top left resource display.</description>
+</ModMetaData>
