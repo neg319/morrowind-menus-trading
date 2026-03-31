@@ -1,0 +1,47 @@
+name: build-morrowind-menus-trading
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore packages
+        run: dotnet restore Source/MorrowindMenusTrading.csproj
+
+      - name: Build mod assembly
+        run: dotnet build Source/MorrowindMenusTrading.csproj -c Release --no-restore
+
+      - name: Create distributable mod folder
+        shell: pwsh
+        run: |
+          $root = Get-Location
+          $stage = Join-Path $root 'artifact/Morrowind Menus & Trading'
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          if (Test-Path 'About') { Copy-Item -Path About -Destination $stage -Recurse -Force }
+          if (Test-Path 'LoadFolders.xml') { Copy-Item -Path LoadFolders.xml -Destination $stage -Force }
+          if (Test-Path 'README.md') { Copy-Item -Path README.md -Destination $stage -Force }
+          if (Test-Path '1.6') { Copy-Item -Path '1.6' -Destination $stage -Recurse -Force }
+          if (Test-Path 'Textures') { Copy-Item -Path 'Textures' -Destination $stage -Recurse -Force }
+          if (Test-Path 'Languages') { Copy-Item -Path 'Languages' -Destination $stage -Recurse -Force }
+          if (Test-Path 'Defs') { Copy-Item -Path 'Defs' -Destination $stage -Recurse -Force }
+          Compress-Archive -Path $stage -DestinationPath (Join-Path $root 'artifact/MorrowindMenusTrading_v1.6_build.zip') -Force
+
+      - name: Upload built mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: MorrowindMenusTrading_v1.6_build
+          path: artifact/MorrowindMenusTrading_v1.6_build.zip
