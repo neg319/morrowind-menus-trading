@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LanguageData>
-  <MIL_ModName>Morrowind Menus</MIL_ModName>
-  <MIL_MorrowindInventory>Enable Morrowind style inventory UI</MIL_MorrowindInventory>
-  <MIL_GlobalWindows>Skin large windows with the Morrowind theme</MIL_GlobalWindows>
-  <MIL_Reset>Reset to defaults</MIL_Reset>
-  <MIL_SettingsBlurb>This version focuses on the Morrowind style menu presentation only. It replaces the pawn gear tab with a tabbed inventory, equipment, and stats layout while keeping normal RimWorld trading, hauling, and stockpile behavior untouched.</MIL_SettingsBlurb>
-</LanguageData>
