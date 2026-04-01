@@ -20,19 +20,20 @@ public enum MorrowindSelectionSource
 
 public enum MorrowindItemCategory
 {
-    All,
-    Food,
-    Medicine,
+    Foods,
+    Manufactured,
+    RawResources,
+    Items,
     Weapons,
     Apparel,
-    Resources,
+    Medicine,
     Misc,
 }
 
 public sealed class MorrowindInventoryState
 {
     public MorrowindInventoryTab activeTab = MorrowindInventoryTab.Inventory;
-    public MorrowindItemCategory activeCategory = MorrowindItemCategory.All;
+    public MorrowindItemCategory activeCategory = MorrowindItemCategory.Weapons;
     public MorrowindSelectionSource selectionSource = MorrowindSelectionSource.Colony;
     public int selectedThingId = -1;
     public UnityEngine.Vector2 inventoryScroll;

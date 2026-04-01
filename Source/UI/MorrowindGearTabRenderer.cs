@@ -155,10 +155,11 @@ public static class MorrowindGearTabRenderer
         DrawLabelLeft(new Rect(inner.x, inner.y, inner.width, 22f), $"Equipped: {GatherEquippedThings(pawn).Count}", MorrowindUiResources.TextPrimary);
         DrawLabelLeft(new Rect(inner.x, inner.y + 24f, inner.width, 22f), $"Carried stacks: {pawn.inventory?.innerContainer?.Count ?? 0}", MorrowindUiResources.TextPrimary);
         DrawLabelLeft(new Rect(inner.x, inner.y + 48f, inner.width, 22f), $"Colony stacks: {colonyItems.Count}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 72f, inner.width, 22f), $"Food stacks: {colonyItems.Count(IsFoodThing)}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 96f, inner.width, 22f), $"Weapon stacks: {colonyItems.Count(t => t.def.IsWeapon)}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 120f, inner.width, 22f), $"Medicine stacks: {colonyItems.Count(t => t.def.IsMedicine)}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 144f, inner.width, 22f), $"Worn apparel: {pawn.apparel?.WornApparel?.Count ?? 0}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 72f, inner.width, 22f), $"Foods: {colonyItems.Count(IsFoodThing)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 96f, inner.width, 22f), $"Manufactured: {colonyItems.Count(IsManufacturedThing)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 120f, inner.width, 22f), $"Raw resources: {colonyItems.Count(IsRawResourceThing)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 144f, inner.width, 22f), $"Items: {colonyItems.Count(IsItemThing)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 168f, inner.width, 22f), $"Misc: {colonyItems.Count(IsMiscThing)}", MorrowindUiResources.TextMuted);
         DrawLabelLeft(new Rect(inner.x, inner.y + 168f, inner.width, 22f), $"Move speed: {pawn.GetStatValue(StatDefOf.MoveSpeed):F2}", MorrowindUiResources.TextMuted);
         DrawLabelLeft(new Rect(inner.x, inner.y + 192f, inner.width, 22f), $"Armor: {Mathf.RoundToInt((pawn.GetStatValue(StatDefOf.ArmorRating_Sharp) + pawn.GetStatValue(StatDefOf.ArmorRating_Blunt)) * 50f)}", MorrowindUiResources.TextMuted);
     }
@@ -176,7 +177,7 @@ public static class MorrowindGearTabRenderer
         Rect gridRect = new(equippedRect.xMax + 8f, bodyRect.y + 28f, bodyRect.width - columnWidth - 8f, bodyRect.height - 28f);
         Rect gridHeaderRect = new(equippedRect.xMax + 8f, bodyRect.y, bodyRect.width - columnWidth - 8f, 24f);
 
-        List<MorrowindInventoryEntry> equippedEntries = GatherEquippedEntries(pawn, MorrowindItemCategory.All);
+        List<MorrowindInventoryEntry> equippedEntries = GatherEquippedEntries(pawn, state.activeCategory);
         List<MorrowindInventoryEntry> entries = GatherColonyEntries(pawn, state.activeCategory);
 
         DrawEquippedColumn(equippedRect, equippedEntries, state);
@@ -191,13 +192,14 @@ public static class MorrowindGearTabRenderer
     {
         (MorrowindItemCategory category, string label, float width)[] tabs =
         {
-            (MorrowindItemCategory.All, "All", 56f),
-            (MorrowindItemCategory.Food, "Food", 64f),
-            (MorrowindItemCategory.Medicine, "Medicine", 86f),
             (MorrowindItemCategory.Weapons, "Weapons", 82f),
             (MorrowindItemCategory.Apparel, "Apparel", 78f),
-            (MorrowindItemCategory.Resources, "Resources", 88f),
-            (MorrowindItemCategory.Misc, "Misc", 64f),
+            (MorrowindItemCategory.Foods, "Food", 58f),
+            (MorrowindItemCategory.Medicine, "Medicine", 86f),
+            (MorrowindItemCategory.Items, "Items", 62f),
+            (MorrowindItemCategory.RawResources, "Resources", 84f),
+            (MorrowindItemCategory.Manufactured, "Manufactured", 104f),
+            (MorrowindItemCategory.Misc, "Misc", 56f),
         };
 
         float x = rect.x;
@@ -239,25 +241,29 @@ public static class MorrowindGearTabRenderer
     {
         return category switch
         {
-            MorrowindItemCategory.All => true,
-            MorrowindItemCategory.Food => IsFoodThing(thing),
-            MorrowindItemCategory.Medicine => thing.def.IsMedicine,
+            MorrowindItemCategory.Foods => IsFoodThing(thing),
+            MorrowindItemCategory.Manufactured => IsManufacturedThing(thing),
+            MorrowindItemCategory.RawResources => IsRawResourceThing(thing),
+            MorrowindItemCategory.Items => IsItemThing(thing),
             MorrowindItemCategory.Weapons => thing.def.IsWeapon,
             MorrowindItemCategory.Apparel => thing is Apparel,
-            MorrowindItemCategory.Resources => IsResourceThing(thing),
-            MorrowindItemCategory.Misc => !IsFoodThing(thing) && !thing.def.IsMedicine && !thing.def.IsWeapon && thing is not Apparel && !IsResourceThing(thing),
-            _ => true,
+            MorrowindItemCategory.Medicine => thing.def.IsMedicine,
+            MorrowindItemCategory.Misc => IsMiscThing(thing),
+            _ => false,
         };
     }
 
     private static int CategorySortIndex(Thing thing)
     {
         if (IsFoodThing(thing)) return 0;
-        if (thing.def.IsMedicine) return 1;
-        if (thing.def.IsWeapon) return 2;
-        if (thing is Apparel) return 3;
-        if (IsResourceThing(thing)) return 4;
-        return 5;
+        if (IsManufacturedThing(thing)) return 1;
+        if (IsRawResourceThing(thing)) return 2;
+        if (IsItemThing(thing)) return 3;
+        if (thing.def.IsWeapon) return 4;
+        if (thing is Apparel) return 5;
+        if (thing.def.IsMedicine) return 6;
+        if (IsMiscThing(thing)) return 7;
+        return 8;
     }
 
     private static void DrawInventoryGrid(Rect rect, List<MorrowindInventoryEntry> entries, MorrowindInventoryState state, Pawn pawn)
@@ -637,17 +643,135 @@ public static class MorrowindGearTabRenderer
 
     private static bool IsFoodThing(Thing thing)
     {
-        return thing?.def?.ingestible != null;
+        return thing?.def?.ingestible != null && !thing.def.IsMedicine;
     }
 
-    private static bool IsResourceThing(Thing thing)
+    private static bool IsRawResourceThing(Thing thing)
     {
         if (thing?.def == null)
         {
             return false;
         }
 
-        return thing.def.IsStuff || (thing.def.EverHaulable && thing.def.category == ThingCategory.Item && thing.def.stackLimit > 1 && !IsFoodThing(thing) && !thing.def.IsMedicine && !thing.def.IsWeapon && thing is not Apparel);
+        ThingDef def = thing.def;
+        if (IsFoodThing(thing) || def.IsMedicine || def.IsWeapon || thing is Apparel)
+        {
+            return false;
+        }
+
+        if (def.IsStuff || def.stuffProps != null)
+        {
+            return true;
+        }
+
+        if (HasCategoryToken(def, "Raw"))
+        {
+            return true;
+        }
+
+        if (HasCategoryToken(def, "Resource") && !HasCategoryToken(def, "Manufactured"))
+        {
+            return true;
+        }
+
+        if (HasCategoryToken(def, "Metal") || HasCategoryToken(def, "Stone") || HasCategoryToken(def, "Wood") ||
+            HasCategoryToken(def, "Textile") || HasCategoryToken(def, "Leather") || HasCategoryToken(def, "Fabric"))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsManufacturedThing(Thing thing)
+    {
+        if (thing?.def == null)
+        {
+            return false;
+        }
+
+        ThingDef def = thing.def;
+        if (IsFoodThing(thing) || def.IsMedicine || def.IsWeapon || thing is Apparel || IsRawResourceThing(thing))
+        {
+            return false;
+        }
+
+        if (def.recipeMaker != null || def.MadeFromStuff)
+        {
+            return true;
+        }
+
+        if (HasCategoryToken(def, "Manufactured") || HasCategoryToken(def, "Component"))
+        {
+            return true;
+        }
+
+        return def.stackLimit > 1;
+    }
+
+    private static bool IsItemThing(Thing thing)
+    {
+        if (thing?.def == null)
+        {
+            return false;
+        }
+
+        ThingDef def = thing.def;
+        if (IsFoodThing(thing) || def.IsMedicine || def.IsWeapon || thing is Apparel || IsRawResourceThing(thing) || IsManufacturedThing(thing))
+        {
+            return false;
+        }
+
+        if (HasCategoryToken(def, "Item") || HasCategoryToken(def, "Items") || HasCategoryToken(def, "Utility") ||
+            HasCategoryToken(def, "Tool") || HasCategoryToken(def, "Device") || HasCategoryToken(def, "Book") ||
+            HasCategoryToken(def, "Artifact") || HasCategoryToken(def, "Drug") || HasCategoryToken(def, "Joy"))
+        {
+            return true;
+        }
+
+        if (def.comps != null && def.comps.Any(comp => comp.compClass != null &&
+            comp.compClass.Name.IndexOf("UseEffect", StringComparison.OrdinalIgnoreCase) >= 0))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsMiscThing(Thing thing)
+    {
+        if (thing?.def == null)
+        {
+            return false;
+        }
+
+        return !IsFoodThing(thing) &&
+               !thing.def.IsMedicine &&
+               !thing.def.IsWeapon &&
+               thing is not Apparel &&
+               !IsRawResourceThing(thing) &&
+               !IsManufacturedThing(thing) &&
+               !IsItemThing(thing);
+    }
+
+    private static bool HasCategoryToken(ThingDef def, string token)
+    {
+        if (def == null || token.NullOrEmpty())
+        {
+            return false;
+        }
+
+        if (def.thingCategories != null && def.thingCategories.Any(category => category.defName.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0))
+        {
+            return true;
+        }
+
+        if (def.tradeTags != null && def.tradeTags.Any(tag => tag.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0))
+        {
+            return true;
+        }
+
+        return def.defName.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0;
     }
 
     private static void DrawThingIcon(Rect rect, Thing thing)
@@ -700,13 +824,21 @@ public static class MorrowindGearTabRenderer
         {
             builder.AppendLine($"Medicine. Potency: {thing.GetStatValue(StatDefOf.MedicalPotency):F2}");
         }
-        else if (IsResourceThing(thing))
+        else if (IsRawResourceThing(thing))
         {
-            builder.AppendLine("Resource or crafting material.");
+            builder.AppendLine("Raw resource. Basic colony material.");
+        }
+        else if (IsManufacturedThing(thing))
+        {
+            builder.AppendLine("Manufactured item. Processed colony good.");
+        }
+        else if (IsItemThing(thing))
+        {
+            builder.AppendLine("Item. Utility colony item.");
         }
         else
         {
-            builder.AppendLine("Colony item.");
+            builder.AppendLine("Miscellaneous colony item.");
         }
 
         if (!thing.def.description.NullOrEmpty())
