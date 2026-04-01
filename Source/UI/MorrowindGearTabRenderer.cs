@@ -169,7 +169,7 @@ public static class MorrowindGearTabRenderer
         MorrowindWindowSkin.DrawPanel(rect);
         Rect inner = rect.ContractedBy(10f);
         Rect categoryRect = new(inner.x, inner.y, inner.width, CategoryTabsHeight);
-        DrawCategoryTabs(categoryRect, state);
+        DrawCategoryTabs(categoryRect, pawn, state);
 
         float columnWidth = 82f;
         Rect bodyRect = new(inner.x, categoryRect.yMax + 6f, inner.width, inner.height - CategoryTabsHeight - 20f);
@@ -177,49 +177,80 @@ public static class MorrowindGearTabRenderer
         Rect gridRect = new(equippedRect.xMax + 8f, bodyRect.y + 28f, bodyRect.width - columnWidth - 8f, bodyRect.height - 28f);
         Rect gridHeaderRect = new(equippedRect.xMax + 8f, bodyRect.y, bodyRect.width - columnWidth - 8f, 24f);
 
-        List<MorrowindInventoryEntry> equippedEntries = GatherEquippedEntries(pawn, state.activeCategory);
-        List<MorrowindInventoryEntry> entries = GatherColonyEntries(pawn, state.activeCategory);
+        List<MorrowindInventoryEntry> equippedEntries = GatherEquippedEntries(pawn, state);
+        List<MorrowindInventoryEntry> entries = GatherColonyEntries(pawn, state);
 
         DrawEquippedColumn(equippedRect, equippedEntries, state);
-        DrawLabelLeft(gridHeaderRect, "Colony inventory", MorrowindUiResources.TextPrimary);
+        DrawLabelLeft(gridHeaderRect, GetInventoryHeaderText(pawn, state), MorrowindUiResources.TextPrimary);
         DrawInventoryGrid(gridRect, entries, state, pawn);
 
         Rect ornamentRect = new(inner.x + 4f, inner.yMax - 8f, inner.width - 8f, 4f);
         DrawBottomRail(ornamentRect);
     }
 
-    private static void DrawCategoryTabs(Rect rect, MorrowindInventoryState state)
+    private static void DrawCategoryTabs(Rect rect, Pawn pawn, MorrowindInventoryState state)
     {
-        (MorrowindItemCategory category, string label, float width)[] tabs =
-        {
-            (MorrowindItemCategory.Weapons, "Weapons", 82f),
-            (MorrowindItemCategory.Apparel, "Apparel", 78f),
-            (MorrowindItemCategory.Foods, "Food", 58f),
-            (MorrowindItemCategory.Medicine, "Medicine", 86f),
-            (MorrowindItemCategory.Items, "Items", 62f),
-            (MorrowindItemCategory.RawResources, "Resources", 84f),
-            (MorrowindItemCategory.Manufactured, "Manufactured", 104f),
-            (MorrowindItemCategory.Misc, "Misc", 56f),
-        };
+        IReadOnlyList<MorrowindItemCategory> configuredTabs = MorrowindMenusTradingMod.Settings?.GetQuickTabs()
+            ?? MorrowindMenusTradingSettings.GetDefaultQuickTabOrder()
+                .Select(key => Enum.TryParse(key, out MorrowindItemCategory category) ? (MorrowindItemCategory?)category : null)
+                .Where(category => category.HasValue)
+                .Select(category => category.Value)
+                .ToList();
 
-        float x = rect.x;
-        foreach ((MorrowindItemCategory category, string label, float width) in tabs)
+        if (configuredTabs.Count == 0)
         {
+            configuredTabs = new List<MorrowindItemCategory> { MorrowindItemCategory.Weapons };
+        }
+
+        if (!configuredTabs.Contains(state.activeCategory))
+        {
+            state.activeCategory = configuredTabs[0];
+        }
+
+        float dropdownWidth = 92f;
+        float tabGap = 4f;
+        float x = rect.x;
+        float maxTabsWidth = rect.width - dropdownWidth - tabGap;
+
+        for (int i = 0; i < configuredTabs.Count; i++)
+        {
+            MorrowindItemCategory category = configuredTabs[i];
+            string label = MorrowindMenusTradingMod.GetQuickTabLabel(category);
+            float width = Mathf.Clamp(Text.CalcSize(label).x + 18f, 48f, 96f);
+            if (x + width > rect.x + maxTabsWidth)
+            {
+                break;
+            }
+
             Rect tabRect = new(x, rect.y, width, rect.height);
-            bool active = state.activeCategory == category;
+            bool active = !state.HasExtraCategorySelection && state.activeCategory == category;
             DrawTab(tabRect, label, active);
             if (Widgets.ButtonInvisible(tabRect))
             {
                 state.activeCategory = category;
+                state.ClearExtraCategories();
+                state.inventoryScroll = Vector2.zero;
+                state.ClearSelection();
             }
-            x += width + 4f;
+
+            x += width + tabGap;
+        }
+
+        float dropdownX = Mathf.Min(rect.xMax - dropdownWidth, x);
+        Rect dropdownRect = new(dropdownX, rect.y, dropdownWidth, rect.height);
+        string dropdownLabel = state.HasExtraCategorySelection ? $"More ({state.selectedExtraCategoryDefs.Count})" : "More...";
+        DrawTab(dropdownRect, dropdownLabel, state.HasExtraCategorySelection);
+        TooltipHandler.TipRegion(dropdownRect, BuildExtraCategoryTooltip(pawn, state));
+        if (Widgets.ButtonInvisible(dropdownRect))
+        {
+            OpenExtraCategoryMenu(pawn, state);
         }
     }
 
-    private static List<MorrowindInventoryEntry> GatherColonyEntries(Pawn pawn, MorrowindItemCategory category)
+    private static List<MorrowindInventoryEntry> GatherColonyEntries(Pawn pawn, MorrowindInventoryState state)
     {
         return MorrowindColonyInventoryCache.GetItemsForMap(pawn?.MapHeld)
-            .Where(t => MatchesCategory(t, category))
+            .Where(t => MatchesActiveFilter(t, state))
             .Select(t => new MorrowindInventoryEntry(t, MorrowindSelectionSource.Colony, false))
             .OrderBy(entry => CategorySortIndex(entry.thing))
             .ThenBy(entry => entry.thing.LabelCap.ToString())
@@ -227,18 +258,38 @@ public static class MorrowindGearTabRenderer
             .ToList();
     }
 
-    private static List<MorrowindInventoryEntry> GatherEquippedEntries(Pawn pawn, MorrowindItemCategory category)
+    private static List<MorrowindInventoryEntry> GatherEquippedEntries(Pawn pawn, MorrowindInventoryState state)
     {
         return GatherEquippedThings(pawn)
-            .Where(t => MatchesCategory(t, category))
+            .Where(t => MatchesActiveFilter(t, state))
             .Select(t => new MorrowindInventoryEntry(t, t is Apparel ? MorrowindSelectionSource.Apparel : MorrowindSelectionSource.Equipment, true))
             .OrderBy(entry => CategorySortIndex(entry.thing))
             .ThenBy(entry => entry.thing.LabelCap.ToString())
             .ToList();
     }
 
+    private static bool MatchesActiveFilter(Thing thing, MorrowindInventoryState state)
+    {
+        if (thing == null)
+        {
+            return false;
+        }
+
+        if (state?.HasExtraCategorySelection == true)
+        {
+            return MatchesExtraCategorySelection(thing, state.selectedExtraCategoryDefs);
+        }
+
+        return MatchesCategory(thing, state?.activeCategory ?? MorrowindItemCategory.Weapons);
+    }
+
     private static bool MatchesCategory(Thing thing, MorrowindItemCategory category)
     {
+        if (thing?.def == null)
+        {
+            return false;
+        }
+
         return category switch
         {
             MorrowindItemCategory.Foods => IsFoodThing(thing),
@@ -251,6 +302,165 @@ public static class MorrowindGearTabRenderer
             MorrowindItemCategory.Misc => IsMiscThing(thing),
             _ => false,
         };
+    }
+
+    private static bool MatchesExtraCategorySelection(Thing thing, IEnumerable<string> selectedCategoryDefs)
+    {
+        if (thing?.def?.thingCategories == null || selectedCategoryDefs == null)
+        {
+            return false;
+        }
+
+        HashSet<string> selected = selectedCategoryDefs as HashSet<string> ?? new HashSet<string>(selectedCategoryDefs);
+        if (selected.Count == 0)
+        {
+            return false;
+        }
+
+        return thing.def.thingCategories.Any(category => category != null && selected.Contains(category.defName));
+    }
+
+    private static string GetInventoryHeaderText(Pawn pawn, MorrowindInventoryState state)
+    {
+        if (state?.HasExtraCategorySelection != true)
+        {
+            return "Colony inventory";
+        }
+
+        List<string> names = GetAvailableExtraCategories(pawn)
+            .Where(category => state.selectedExtraCategoryDefs.Contains(category.defName))
+            .Select(GetCategoryLabel)
+            .OrderBy(label => label)
+            .ToList();
+
+        if (names.Count == 0)
+        {
+            return "Colony inventory";
+        }
+
+        string joined = string.Join(", ", names.Take(2));
+        if (names.Count > 2)
+        {
+            joined += $" +{names.Count - 2}";
+        }
+
+        return $"Colony inventory - {joined}";
+    }
+
+    private static string BuildExtraCategoryTooltip(Pawn pawn, MorrowindInventoryState state)
+    {
+        List<ThingCategoryDef> categories = GetAvailableExtraCategories(pawn);
+        if (categories.Count == 0)
+        {
+            return "No extra categories are available on this map right now.";
+        }
+
+        if (state?.HasExtraCategorySelection != true)
+        {
+            return "Browse more item categories that are not on the quick tabs.";
+        }
+
+        List<string> names = categories
+            .Where(category => state.selectedExtraCategoryDefs.Contains(category.defName))
+            .Select(GetCategoryLabel)
+            .OrderBy(label => label)
+            .ToList();
+
+        return names.Count == 0
+            ? "Browse more item categories that are not on the quick tabs."
+            : "Selected categories: " + string.Join(", ", names);
+    }
+
+    private static void OpenExtraCategoryMenu(Pawn pawn, MorrowindInventoryState state)
+    {
+        List<ThingCategoryDef> categories = GetAvailableExtraCategories(pawn);
+        if (categories.Count == 0)
+        {
+            Messages.Message("No other item categories are available on this map right now.", MessageTypeDefOf.RejectInput, false);
+            return;
+        }
+
+        List<FloatMenuOption> options = new();
+        if (state.HasExtraCategorySelection)
+        {
+            options.Add(new FloatMenuOption("Clear extra categories", () =>
+            {
+                state.ClearExtraCategories();
+                state.inventoryScroll = Vector2.zero;
+                state.ClearSelection();
+            }));
+        }
+
+        foreach (ThingCategoryDef category in categories)
+        {
+            bool selected = state.selectedExtraCategoryDefs.Contains(category.defName);
+            string label = (selected ? "[x] " : "[ ] ") + GetCategoryLabel(category);
+            options.Add(new FloatMenuOption(label, () =>
+            {
+                state.ToggleExtraCategory(category.defName);
+                state.inventoryScroll = Vector2.zero;
+                state.ClearSelection();
+            }));
+        }
+
+        Find.WindowStack.Add(new FloatMenu(options));
+    }
+
+    private static List<ThingCategoryDef> GetAvailableExtraCategories(Pawn pawn)
+    {
+        return MorrowindColonyInventoryCache.GetItemsForMap(pawn?.MapHeld)
+            .Where(thing => thing?.def?.thingCategories != null)
+            .SelectMany(thing => thing.def.thingCategories)
+            .Where(IsSelectableExtraCategory)
+            .GroupBy(category => category.defName)
+            .Select(group => group.First())
+            .OrderBy(category => GetCategoryLabel(category))
+            .ToList();
+    }
+
+    private static bool IsSelectableExtraCategory(ThingCategoryDef category)
+    {
+        if (category == null)
+        {
+            return false;
+        }
+
+        string label = GetCategoryLabel(category);
+        string defName = category.defName ?? string.Empty;
+        string combined = (label + " " + defName).ToLowerInvariant();
+
+        string[] blockedTokens =
+        {
+            "weapon",
+            "apparel",
+            "food",
+            "meal",
+            "medicine",
+            "medic",
+            "resource",
+            "raw",
+            "manufact",
+            "item",
+            "misc",
+        };
+
+        return !blockedTokens.Any(token => combined.Contains(token));
+    }
+
+    private static string GetCategoryLabel(ThingCategoryDef category)
+    {
+        if (category == null)
+        {
+            return string.Empty;
+        }
+
+        string label = category.label;
+        if (!label.NullOrEmpty())
+        {
+            return label.CapitalizeFirst();
+        }
+
+        return category.defName;
     }
 
     private static int CategorySortIndex(Thing thing)
