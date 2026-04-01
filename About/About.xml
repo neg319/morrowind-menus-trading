@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>Morrowind Menus & Trading</name>
+  <name>Morrowind Menus &amp; Trading</name>
   <author>OpenAI for Johnny Berry</author>
   <packageId>vyberware.morrowindmenusandtrading</packageId>
   <supportedVersions>
@@ -14,5 +14,5 @@
       <downloadUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077</downloadUrl>
     </li>
   </modDependencies>
-  <description>Morrowind Menus & Trading replaces the pawn inventory UI with a Morrowind inspired layout and turns colonist personal inventories into large, shared, stockpile like logistics pools. Colonists prioritize filling personal inventories before stockpiles, retrieve needed goods from storage, trade resources between pawns by role, optionally idle at trader spots, and count carried resources in the top left resource display.</description>
+  <description>Morrowind Menus &amp; Trading replaces the pawn inventory UI with a Morrowind inspired layout and turns colonist personal inventories into large, shared, stockpile like logistics pools. Colonists prioritize filling personal inventories before stockpiles, retrieve needed goods from storage, trade resources between pawns by role, optionally idle at trader spots, and count carried resources in the top left resource display.</description>
 </ModMetaData>

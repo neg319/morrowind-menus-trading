@@ -8,9 +8,9 @@ namespace MorrowindMenusTrading.HarmonyPatches;
 [HarmonyPatch(typeof(ResourceCounter), nameof(ResourceCounter.GetCount))]
 public static class ResourceCounterPatches
 {
-    public static void Postfix(ThingDef r, ref int __result)
+    public static void Postfix(ThingDef rDef, ref int __result)
     {
-        if (!MorrowindMenusTradingMod.Settings.personalStockpileMode || r == null)
+        if (!MorrowindMenusTradingMod.Settings.personalStockpileMode || rDef == null)
         {
             return;
         }
@@ -23,7 +23,7 @@ public static class ResourceCounterPatches
 
         foreach (Pawn pawn in map.mapPawns.FreeColonistsSpawned)
         {
-            __result += PersonalInventoryStockpileSystem.CountThingInInventory(pawn, r);
+            __result += PersonalInventoryStockpileSystem.CountThingInInventory(pawn, rDef);
         }
     }
 }

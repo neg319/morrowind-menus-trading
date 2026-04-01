@@ -20,6 +20,3 @@ Use the included GitHub Actions workflow to compile the DLL and package the mod 
 
 
 Latest update: stronger pawn-first, role-favored personal inventory filling with stricter allowed-category checks and broader storage scanning.
-
-
-Version metadata note: this package advertises support for RimWorld 1.6 and 1.7, while still loading the same compiled code from the 1.6 folder for both branches.
