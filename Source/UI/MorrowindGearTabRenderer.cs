@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using RimWorld;
-using MorrowindMenusTrading.Buildings;
-using MorrowindMenusTrading.Components;
-using MorrowindMenusTrading.Systems;
 using UnityEngine;
 using Verse;
+using Verse.AI;
 
 namespace MorrowindMenusTrading.UI;
 
@@ -56,9 +55,6 @@ public static class MorrowindGearTabRenderer
             case MorrowindInventoryTab.Stats:
                 DrawStatsPane(rightRect, pawn, state);
                 break;
-            case MorrowindInventoryTab.Roles:
-                DrawRolesPane(rightRect, pawn);
-                break;
         }
 
         DrawFooter(footerRect, pawn, state);
@@ -92,16 +88,15 @@ public static class MorrowindGearTabRenderer
 
     private static void DrawModeTabs(Rect rect, MorrowindInventoryState state)
     {
-        string[] labels = { "Inventory", "Equipment", "Stats", "Roles" };
+        string[] labels = { "Inventory", "Equipment", "Stats" };
         MorrowindInventoryTab[] tabs =
         {
             MorrowindInventoryTab.Inventory,
             MorrowindInventoryTab.Equipment,
             MorrowindInventoryTab.Stats,
-            MorrowindInventoryTab.Roles,
         };
 
-        float tabWidth = 104f;
+        float tabWidth = 120f;
         for (int i = 0; i < tabs.Length; i++)
         {
             Rect tabRect = new(rect.x + i * (tabWidth + 6f), rect.y, tabWidth, rect.height);
@@ -156,16 +151,16 @@ public static class MorrowindGearTabRenderer
     {
         MorrowindWindowSkin.DrawPanel(rect);
         Rect inner = rect.ContractedBy(8f);
-        var component = MorrowindMenusTradingGameComponent.Instance;
-        InventoryTraderRole effectiveRole = component?.GetEffectiveRole(pawn) ?? InventoryTraderRole.Resources;
+        List<Thing> colonyItems = MorrowindColonyInventoryCache.GetItemsForMap(pawn.MapHeld);
         DrawLabelLeft(new Rect(inner.x, inner.y, inner.width, 22f), $"Equipped: {GatherEquippedThings(pawn).Count}", MorrowindUiResources.TextPrimary);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 24f, inner.width, 22f), $"Inventory stacks: {pawn.inventory?.innerContainer?.Count ?? 0}", MorrowindUiResources.TextPrimary);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 48f, inner.width, 22f), $"Role: {RoleLabel(effectiveRole)}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 72f, inner.width, 44f), $"Allowed: {component?.AllowedRoleSummary(pawn) ?? "Food, Weapons, Medicine, Apparel, Resources, Misc"}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 118f, inner.width, 22f), $"Food stacks: {pawn.inventory?.innerContainer?.Count(IsFoodThing) ?? 0}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 142f, inner.width, 22f), $"Weapon stacks: {pawn.inventory?.innerContainer?.Count(t => t.def.IsWeapon) ?? 0}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 166f, inner.width, 22f), $"Medicine stacks: {pawn.inventory?.innerContainer?.Count(t => t.def.IsMedicine) ?? 0}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 190f, inner.width, 22f), $"Armor: {Mathf.RoundToInt((pawn.GetStatValue(StatDefOf.ArmorRating_Sharp) + pawn.GetStatValue(StatDefOf.ArmorRating_Blunt)) * 50f)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 24f, inner.width, 22f), $"Carried stacks: {pawn.inventory?.innerContainer?.Count ?? 0}", MorrowindUiResources.TextPrimary);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 48f, inner.width, 22f), $"Colony stacks: {colonyItems.Count}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 72f, inner.width, 22f), $"Food stacks: {colonyItems.Count(IsFoodThing)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 96f, inner.width, 22f), $"Weapon stacks: {colonyItems.Count(t => t.def.IsWeapon)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 120f, inner.width, 22f), $"Medicine stacks: {colonyItems.Count(t => t.def.IsMedicine)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 144f, inner.width, 22f), $"Worn apparel: {pawn.apparel?.WornApparel?.Count ?? 0}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 168f, inner.width, 22f), $"Move speed: {pawn.GetStatValue(StatDefOf.MoveSpeed):F2}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 192f, inner.width, 22f), $"Armor: {Mathf.RoundToInt((pawn.GetStatValue(StatDefOf.ArmorRating_Sharp) + pawn.GetStatValue(StatDefOf.ArmorRating_Blunt)) * 50f)}", MorrowindUiResources.TextMuted);
     }
 
     private static void DrawInventoryPane(Rect rect, Pawn pawn, MorrowindInventoryState state)
@@ -178,12 +173,14 @@ public static class MorrowindGearTabRenderer
         float columnWidth = 82f;
         Rect bodyRect = new(inner.x, categoryRect.yMax + 6f, inner.width, inner.height - CategoryTabsHeight - 20f);
         Rect equippedRect = new(bodyRect.x, bodyRect.y, columnWidth, bodyRect.height);
-        Rect gridRect = new(equippedRect.xMax + 8f, bodyRect.y, bodyRect.width - columnWidth - 8f, bodyRect.height);
+        Rect gridRect = new(equippedRect.xMax + 8f, bodyRect.y + 28f, bodyRect.width - columnWidth - 8f, bodyRect.height - 28f);
+        Rect gridHeaderRect = new(equippedRect.xMax + 8f, bodyRect.y, bodyRect.width - columnWidth - 8f, 24f);
 
-        List<MorrowindInventoryEntry> equippedEntries = GatherEquippedEntries(pawn, state.activeCategory);
-        List<MorrowindInventoryEntry> entries = GatherInventoryEntries(pawn, state.activeCategory);
+        List<MorrowindInventoryEntry> equippedEntries = GatherEquippedEntries(pawn, MorrowindItemCategory.All);
+        List<MorrowindInventoryEntry> entries = GatherColonyEntries(pawn, state.activeCategory);
 
         DrawEquippedColumn(equippedRect, equippedEntries, state);
+        DrawLabelLeft(gridHeaderRect, "Colony inventory", MorrowindUiResources.TextPrimary);
         DrawInventoryGrid(gridRect, entries, state, pawn);
 
         Rect ornamentRect = new(inner.x + 4f, inner.yMax - 8f, inner.width - 8f, 4f);
@@ -217,12 +214,11 @@ public static class MorrowindGearTabRenderer
         }
     }
 
-    private static List<MorrowindInventoryEntry> GatherInventoryEntries(Pawn pawn, MorrowindItemCategory category)
+    private static List<MorrowindInventoryEntry> GatherColonyEntries(Pawn pawn, MorrowindItemCategory category)
     {
-        IEnumerable<Thing> inventoryThings = pawn.inventory?.innerContainer?.ToList() ?? Enumerable.Empty<Thing>();
-        return inventoryThings
+        return MorrowindColonyInventoryCache.GetItemsForMap(pawn?.MapHeld)
             .Where(t => MatchesCategory(t, category))
-            .Select(t => new MorrowindInventoryEntry(t, MorrowindSelectionSource.Inventory, false))
+            .Select(t => new MorrowindInventoryEntry(t, MorrowindSelectionSource.Colony, false))
             .OrderBy(entry => CategorySortIndex(entry.thing))
             .ThenBy(entry => entry.thing.LabelCap.ToString())
             .ThenByDescending(entry => entry.thing.stackCount)
@@ -290,7 +286,7 @@ public static class MorrowindGearTabRenderer
                 GUI.color = Color.white;
                 Text.Anchor = TextAnchor.UpperLeft;
             }
-            TooltipHandler.TipRegion(cell, thing.LabelCap.ToString());
+            TooltipHandler.TipRegion(cell, BuildThingTooltip(thing, entry.equipped));
             if (Widgets.ButtonInvisible(cell))
             {
                 state.Select(thing, entry.source);
@@ -319,7 +315,7 @@ public static class MorrowindGearTabRenderer
             MorrowindWindowSkin.DrawSlot(cell, selected);
             MorrowindWindowSkin.DrawEquippedOutline(cell);
             DrawThingIcon(cell.ContractedBy(6f), entry.thing);
-            TooltipHandler.TipRegion(cell, $"[Equipped] {entry.thing.LabelCap}");
+            TooltipHandler.TipRegion(cell, BuildThingTooltip(entry.thing, true));
             if (Widgets.ButtonInvisible(cell))
             {
                 state.Select(entry.thing, entry.source);
@@ -401,81 +397,11 @@ public static class MorrowindGearTabRenderer
         DrawThingIcon(iconRect.ContractedBy(4f), thing);
         Rect labelRect = new(rect.x + 144f, rect.y, rect.width - 144f, rect.height);
         DrawLabelLeft(labelRect, thing.LabelCap, MorrowindUiResources.TextPrimary);
-        TooltipHandler.TipRegion(rect, thing.LabelCap);
+        TooltipHandler.TipRegion(rect, BuildThingTooltip(thing, true));
         if (Widgets.ButtonInvisible(rect))
         {
             state.Select(thing, source);
         }
-    }
-
-    private static void DrawRolesPane(Rect rect, Pawn pawn)
-    {
-        MorrowindWindowSkin.DrawPanel(rect);
-        Rect inner = rect.ContractedBy(10f);
-        var component = MorrowindMenusTradingGameComponent.Instance;
-        InventoryTraderRole manual = component?.GetManualRoleOverride(pawn) ?? InventoryTraderRole.Auto;
-        InventoryTraderRole effective = component?.GetEffectiveRole(pawn) ?? InventoryTraderRole.Resources;
-
-        DrawLabelLeft(new Rect(inner.x, inner.y, inner.width, 24f), "Trading role", MorrowindUiResources.TextPrimary);
-        Rect leftButton = new(inner.x, inner.y + 30f, 30f, 28f);
-        Rect valueRect = new(inner.x + 36f, inner.y + 28f, inner.width - 72f, 32f);
-        Rect rightButton = new(inner.xMax - 30f, inner.y + 30f, 30f, 28f);
-        if (DrawActionButton(leftButton, "<"))
-        {
-            component?.SetManualRoleOverride(pawn, PreviousRole(manual));
-        }
-        DrawLabelCentered(valueRect, manual == InventoryTraderRole.Auto ? $"Auto: {RoleLabel(effective)}" : $"Manual: {RoleLabel(manual)}", MorrowindUiResources.TextPrimary);
-        if (DrawActionButton(rightButton, ">"))
-        {
-            component?.SetManualRoleOverride(pawn, NextRole(manual));
-        }
-
-        Building_TraderSpot nearestSpot = pawn.MapHeld?.listerThings?.AllThings?.OfType<Building_TraderSpot>()
-            .Where(s => s.Spawned && s.SpotRole == effective)
-            .OrderBy(s => s.PositionHeld.DistanceToSquared(pawn.PositionHeld))
-            .FirstOrDefault();
-
-        DrawLabelLeft(new Rect(inner.x, inner.y + 70f, inner.width, 22f), "Allowed pickup categories", MorrowindUiResources.TextPrimary);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 94f, inner.width, 22f), "These decide what this pawn auto collects into inventory.", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 116f, inner.width, 22f), nearestSpot == null ? "Trading spot: none nearby" : $"Trading spot: {nearestSpot.LabelCap}", MorrowindUiResources.TextMuted);
-
-        InventoryTraderRole[] roles =
-        {
-            InventoryTraderRole.Food,
-            InventoryTraderRole.Weapons,
-            InventoryTraderRole.Medicine,
-            InventoryTraderRole.Apparel,
-            InventoryTraderRole.Resources,
-            InventoryTraderRole.Misc,
-        };
-
-        float buttonWidth = (inner.width - 12f) / 2f;
-        for (int i = 0; i < roles.Length; i++)
-        {
-            int row = i / 2;
-            int col = i % 2;
-            Rect buttonRect = new(inner.x + col * (buttonWidth + 12f), inner.y + 152f + row * 42f, buttonWidth, 34f);
-            bool allowed = component?.IsRoleAllowed(pawn, roles[i]) ?? true;
-            if (DrawToggleButton(buttonRect, RoleLabel(roles[i]), allowed))
-            {
-                component?.ToggleRoleAllowed(pawn, roles[i]);
-            }
-        }
-
-        Rect noteRect = new(inner.x, inner.y + 290f, inner.width, 90f);
-        MorrowindWindowSkin.DrawPanel(noteRect, inset: 3f);
-        DrawLabelLeft(noteRect.ContractedBy(8f), "Auto uses the pawn's highest skill until you override it. Allowed categories act like personal stockpile filters. If a matching trader spot exists, idle traders gather there between normal needs and jobs.", MorrowindUiResources.TextMuted);
-    }
-
-    private static bool DrawToggleButton(Rect rect, string label, bool enabledState)
-    {
-        MorrowindWindowSkin.DrawPanel(rect, inset: 2f);
-        if (enabledState)
-        {
-            MorrowindWindowSkin.DrawEquippedOutline(rect);
-        }
-        DrawLabelCentered(rect, enabledState ? $"{label}: On" : $"{label}: Off", enabledState ? MorrowindUiResources.TextPrimary : MorrowindUiResources.TextMuted);
-        return Widgets.ButtonInvisible(rect);
     }
 
     private static void DrawStatsPane(Rect rect, Pawn pawn, MorrowindInventoryState state)
@@ -537,8 +463,9 @@ public static class MorrowindGearTabRenderer
         Rect dropRect = new(clearRect.x - gap - buttonWidth, clearRect.y, buttonWidth, clearRect.height);
         Rect primaryRect = new(dropRect.x - gap - 110f, clearRect.y, 110f, clearRect.height);
         if (DrawActionButton(clearRect, "Clear")) state.ClearSelection();
-        GUI.enabled = selectedThing != null;
+        GUI.enabled = selectedThing != null && CanDrop(state.selectionSource);
         if (DrawActionButton(dropRect, "Drop")) DropSelectedThing(pawn, state);
+        GUI.enabled = selectedThing != null;
         if (DrawActionButton(primaryRect, PrimaryActionLabel(selectedThing, state.selectionSource))) PerformPrimaryAction(pawn, state);
         GUI.enabled = true;
     }
@@ -550,17 +477,25 @@ public static class MorrowindGearTabRenderer
         return Widgets.ButtonInvisible(rect);
     }
 
+    private static bool CanDrop(MorrowindSelectionSource source)
+    {
+        return source == MorrowindSelectionSource.Inventory || source == MorrowindSelectionSource.Equipment || source == MorrowindSelectionSource.Apparel;
+    }
+
     private static string PrimaryActionLabel(Thing selectedThing, MorrowindSelectionSource source)
     {
-        if (selectedThing == null) return "Use";
+        if (selectedThing == null) return "Pick Up";
         return source switch
         {
+            MorrowindSelectionSource.Colony when selectedThing is Apparel => "Wear",
+            MorrowindSelectionSource.Colony when selectedThing.def != null && selectedThing.def.IsWeapon => "Equip",
+            MorrowindSelectionSource.Colony => "Pick Up",
             MorrowindSelectionSource.Inventory when selectedThing is Apparel => "Wear",
             MorrowindSelectionSource.Inventory when selectedThing.def != null && selectedThing.def.IsWeapon => "Equip",
             MorrowindSelectionSource.Inventory => "Use",
             MorrowindSelectionSource.Equipment => "Unequip",
             MorrowindSelectionSource.Apparel => "Unequip",
-            _ => "Use",
+            _ => "Pick Up",
         };
     }
 
@@ -570,6 +505,7 @@ public static class MorrowindGearTabRenderer
         return state.selectionSource switch
         {
             MorrowindSelectionSource.Inventory => pawn.inventory?.innerContainer?.FirstOrDefault(t => t.thingIDNumber == state.selectedThingId),
+            MorrowindSelectionSource.Colony => MorrowindColonyInventoryCache.GetItemsForMap(pawn.MapHeld).FirstOrDefault(t => t.thingIDNumber == state.selectedThingId),
             MorrowindSelectionSource.Equipment => pawn.equipment?.AllEquipmentListForReading?.FirstOrDefault(t => t.thingIDNumber == state.selectedThingId),
             MorrowindSelectionSource.Apparel => pawn.apparel?.WornApparel?.FirstOrDefault(t => t.thingIDNumber == state.selectedThingId),
             _ => null,
@@ -579,23 +515,42 @@ public static class MorrowindGearTabRenderer
     private static void PerformPrimaryAction(Pawn pawn, MorrowindInventoryState state)
     {
         Thing selectedThing = ResolveSelection(pawn, state);
-        if (pawn == null || selectedThing == null) return;
+        if (pawn == null || selectedThing == null)
+        {
+            return;
+        }
+
         switch (state.selectionSource)
         {
+            case MorrowindSelectionSource.Colony:
+                QueueColonyAction(pawn, selectedThing);
+                break;
             case MorrowindSelectionSource.Inventory:
                 if (selectedThing is Apparel apparel)
                 {
-                    if (pawn.inventory?.innerContainer?.Remove(apparel) == true) pawn.apparel?.Wear(apparel, false, false);
+                    if (pawn.inventory?.innerContainer?.Remove(apparel) == true)
+                    {
+                        pawn.apparel?.Wear(apparel, false, false);
+                    }
                 }
                 else if (selectedThing.def != null && selectedThing.def.IsWeapon && selectedThing is ThingWithComps equippable)
                 {
                     ThingWithComps primary = pawn.equipment?.Primary;
-                    if (primary != null && pawn.inventory?.innerContainer != null) pawn.equipment.TryTransferEquipmentToContainer(primary, pawn.inventory.innerContainer);
-                    if (pawn.inventory?.innerContainer?.Remove(equippable) == true) pawn.equipment?.AddEquipment(equippable);
+                    if (primary != null && pawn.inventory?.innerContainer != null)
+                    {
+                        pawn.equipment.TryTransferEquipmentToContainer(primary, pawn.inventory.innerContainer);
+                    }
+                    if (pawn.inventory?.innerContainer?.Remove(equippable) == true)
+                    {
+                        pawn.equipment?.AddEquipment(equippable);
+                    }
                 }
                 break;
             case MorrowindSelectionSource.Equipment:
-                if (selectedThing is ThingWithComps gear && pawn.inventory?.innerContainer != null) pawn.equipment?.TryTransferEquipmentToContainer(gear, pawn.inventory.innerContainer);
+                if (selectedThing is ThingWithComps gear && pawn.inventory?.innerContainer != null)
+                {
+                    pawn.equipment?.TryTransferEquipmentToContainer(gear, pawn.inventory.innerContainer);
+                }
                 break;
             case MorrowindSelectionSource.Apparel:
                 if (selectedThing is Apparel worn && pawn.inventory?.innerContainer != null)
@@ -605,7 +560,42 @@ public static class MorrowindGearTabRenderer
                 }
                 break;
         }
+
         state.ClearSelection();
+    }
+
+    private static void QueueColonyAction(Pawn pawn, Thing selectedThing)
+    {
+        if (pawn.MapHeld == null || selectedThing.MapHeld != pawn.MapHeld || !selectedThing.Spawned)
+        {
+            Messages.Message("That item is no longer available.", MessageTypeDefOf.RejectInput, false);
+            return;
+        }
+
+        if (!pawn.CanReserveAndReach(selectedThing, PathEndMode.Touch, Danger.Deadly))
+        {
+            Messages.Message("That pawn cannot reach the selected item.", MessageTypeDefOf.RejectInput, false);
+            return;
+        }
+
+        Job job;
+        if (selectedThing is Apparel)
+        {
+            job = JobMaker.MakeJob(JobDefOf.Wear, selectedThing);
+            job.count = 1;
+        }
+        else if (selectedThing.def.IsWeapon)
+        {
+            job = JobMaker.MakeJob(JobDefOf.Equip, selectedThing);
+            job.count = 1;
+        }
+        else
+        {
+            job = JobMaker.MakeJob(JobDefOf.TakeInventory, selectedThing);
+            job.count = selectedThing.stackCount;
+        }
+
+        pawn.jobs?.TryTakeOrderedJob(job);
     }
 
     private static void DropSelectedThing(Pawn pawn, MorrowindInventoryState state)
@@ -669,34 +659,70 @@ public static class MorrowindGearTabRenderer
         GUI.color = oldColor;
     }
 
-    private static InventoryTraderRole NextRole(InventoryTraderRole role)
+    private static string BuildThingTooltip(Thing thing, bool equipped)
     {
-        InventoryTraderRole[] roles = (InventoryTraderRole[])Enum.GetValues(typeof(InventoryTraderRole));
-        int index = Array.IndexOf(roles, role);
-        return roles[(index + 1) % roles.Length];
-    }
-
-    private static InventoryTraderRole PreviousRole(InventoryTraderRole role)
-    {
-        InventoryTraderRole[] roles = (InventoryTraderRole[])Enum.GetValues(typeof(InventoryTraderRole));
-        int index = Array.IndexOf(roles, role);
-        return roles[(index - 1 + roles.Length) % roles.Length];
-    }
-
-    private static string RoleLabel(InventoryTraderRole role)
-    {
-        return role switch
+        if (thing?.def == null)
         {
-            InventoryTraderRole.Auto => "Auto",
-            InventoryTraderRole.None => "None",
-            InventoryTraderRole.Food => "Food",
-            InventoryTraderRole.Weapons => "Weapons",
-            InventoryTraderRole.Medicine => "Medicine",
-            InventoryTraderRole.Apparel => "Apparel",
-            InventoryTraderRole.Resources => "Resources",
-            InventoryTraderRole.Misc => "Misc",
-            _ => role.ToString(),
-        };
+            return string.Empty;
+        }
+
+        StringBuilder builder = new();
+        builder.AppendLine(thing.LabelCap.ToString());
+
+        if (equipped)
+        {
+            builder.AppendLine("Currently equipped");
+        }
+
+        if (thing.stackCount > 1)
+        {
+            builder.AppendLine($"Stack: {thing.stackCount}");
+        }
+
+        if (QualityUtility.TryGetQuality(thing, out QualityCategory quality))
+        {
+            builder.AppendLine($"Quality: {quality.GetLabel().CapitalizeFirst()}");
+        }
+
+        if (thing.def.IsWeapon)
+        {
+            builder.AppendLine("Weapon. Can be equipped by a pawn.");
+        }
+        else if (thing is Apparel)
+        {
+            builder.AppendLine("Apparel. Can be worn by a pawn.");
+        }
+        else if (IsFoodThing(thing))
+        {
+            builder.AppendLine($"Food. Nutrition: {thing.def.ingestible.CachedNutrition:F2}");
+        }
+        else if (thing.def.IsMedicine)
+        {
+            builder.AppendLine($"Medicine. Potency: {thing.GetStatValue(StatDefOf.MedicalPotency):F2}");
+        }
+        else if (IsResourceThing(thing))
+        {
+            builder.AppendLine("Resource or crafting material.");
+        }
+        else
+        {
+            builder.AppendLine("Colony item.");
+        }
+
+        if (!thing.def.description.NullOrEmpty())
+        {
+            builder.AppendLine();
+            builder.AppendLine(thing.def.description.Trim());
+        }
+
+        builder.AppendLine();
+        builder.Append($"Mass: {thing.GetStatValue(StatDefOf.Mass):0.##}");
+        if (thing.MarketValue > 0f)
+        {
+            builder.Append($"   Value: {thing.MarketValue:0.#}");
+        }
+
+        return builder.ToString().TrimEnd();
     }
 
     private static void DrawLabelCentered(Rect rect, string text, Color color)

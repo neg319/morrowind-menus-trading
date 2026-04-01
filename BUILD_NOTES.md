@@ -1,7 +1,9 @@
-This package contains the full Morrowind Menus & Trading source layout plus the GitHub Actions workflow that builds the RimWorld 1.6 mod.
+# Build Notes
 
-Major change in this pass:
-- removed the road travel systems and transit world object content
-- narrowed the mod to UI and inventory logistics only
-- reworked the personal inventory system around trader roles and stockpile like sharing
-- darkened the window skin so large windows read black instead of gold filled
+This source package is for the stripped down menu-only version of the mod.
+
+- Target framework: net472
+- RimWorld reference package: Krafs.Rimworld.Ref 1.6.4633
+- Output assembly path: `1.6/Assemblies/`
+
+The GitHub workflow produces `MorrowindMenus_v1.6_build.zip`.

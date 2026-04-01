@@ -1,22 +1,19 @@
-# Morrowind Menus & Trading
+# Morrowind Menus
 
-This RimWorld 1.6 mod project is now focused entirely on two systems:
+A RimWorld 1.6 source mod that replaces the pawn gear tab with a Morrowind inspired interface.
 
-- a Morrowind inspired pawn inventory UI
-- large personal colonist inventories that behave more like stockpiles and trader networks
+## What it does
 
-## Current feature goals in this source tree
+- Replaces the pawn gear tab with a larger tabbed menu
+- Organizes carried items into category tabs
+- Shows equipped gear in its own view
+- Shows a dedicated stats page
+- Applies a Morrowind themed skin to large windows when enabled
 
-- darker black and gold Morrowind style inventory windows
-- large inventory icons and an equipped-items strip aligned on the left
-- automatic pickup of nearby haulables into colonist inventories
-- category trader roles with auto defaults from the pawn's best skills
-- pawn to pawn sharing of food, weapons, medicine, and build resources
-- top left resource counter support for items stored in colonist inventories
+## What it does not do
+
+This stripped down version does not change stockpiles, hauling, pawn trading, inventory sharing, or resource counting. RimWorld logistics stay vanilla.
 
 ## Build
 
-Use the included GitHub Actions workflow to compile the DLL and package the mod for RimWorld 1.6.
-
-
-Latest update: stronger pawn-first, role-favored personal inventory filling with stricter allowed-category checks and broader storage scanning.
+Compile with the included GitHub workflow or build `Source/MorrowindMenusTrading.csproj`.

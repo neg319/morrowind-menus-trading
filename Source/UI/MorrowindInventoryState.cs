@@ -8,12 +8,12 @@ public enum MorrowindInventoryTab
     Inventory,
     Equipment,
     Stats,
-    Roles,
 }
 
 public enum MorrowindSelectionSource
 {
     Inventory,
+    Colony,
     Equipment,
     Apparel,
 }
@@ -33,7 +33,7 @@ public sealed class MorrowindInventoryState
 {
     public MorrowindInventoryTab activeTab = MorrowindInventoryTab.Inventory;
     public MorrowindItemCategory activeCategory = MorrowindItemCategory.All;
-    public MorrowindSelectionSource selectionSource = MorrowindSelectionSource.Inventory;
+    public MorrowindSelectionSource selectionSource = MorrowindSelectionSource.Colony;
     public int selectedThingId = -1;
     public UnityEngine.Vector2 inventoryScroll;
     public UnityEngine.Vector2 equipmentScroll;
@@ -48,7 +48,7 @@ public sealed class MorrowindInventoryState
     public void ClearSelection()
     {
         selectedThingId = -1;
-        selectionSource = MorrowindSelectionSource.Inventory;
+        selectionSource = MorrowindSelectionSource.Colony;
     }
 }
 
