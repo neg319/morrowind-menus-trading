@@ -10,7 +10,6 @@
       <texPath>Things/Pawn/Humanlike/Apparel/DagothUrMask/DagothUrMask</texPath>
       <graphicClass>Graphic_Multi</graphicClass>
       <drawSize>(1.0,1.0)</drawSize>
-      <westFlipped>false</westFlipped>
     </graphicData>
     <uiIconPath>Things/Pawn/Humanlike/Apparel/DagothUrMask/DagothUrMask</uiIconPath>
     <selectable>true</selectable>
