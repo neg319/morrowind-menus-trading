@@ -32,7 +32,6 @@
             <li>Silver</li>
             <li>Gold</li>
             <li>Uranium</li>
-            <li>Bioferrite</li>
           </thingDefs>
         </filter>
         <count>40</count>
@@ -45,7 +44,6 @@
         <li>Silver</li>
         <li>Gold</li>
         <li>Uranium</li>
-        <li>Bioferrite</li>
       </thingDefs>
     </fixedIngredientFilter>
     <products>

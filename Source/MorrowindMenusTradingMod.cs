@@ -22,7 +22,7 @@ public sealed class MorrowindMenusTradingMod : Mod
 
     public override void DoSettingsWindowContents(Rect inRect)
     {
-        Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, 520f);
+        Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, Prefs.DevMode ? 640f : 520f);
         Widgets.BeginScrollView(inRect, ref settingsScroll, viewRect);
 
         var listing = new Listing_Standard();
@@ -50,6 +50,19 @@ public sealed class MorrowindMenusTradingMod : Mod
             Settings.quickTabOrder = MorrowindMenusTradingSettings.GetDefaultQuickTabOrder();
             Settings.NormalizeQuickTabOrder();
             WriteSettings();
+        }
+
+        if (Prefs.DevMode)
+        {
+            listing.GapLine();
+            listing.Label("MIL_DebugHeader".Translate());
+            listing.Label("MIL_DebugTraderVisitBlurb".Translate());
+
+            if (listing.ButtonText("MIL_ForceTraderVisit".Translate()))
+            {
+                DebugTraderVisitUtility.TryForceTraderVisit(out string message, out MessageTypeDef messageType);
+                Messages.Message(message, messageType, historical: false);
+            }
         }
 
         listing.GapLine();

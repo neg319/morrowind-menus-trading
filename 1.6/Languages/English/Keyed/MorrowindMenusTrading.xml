@@ -5,4 +5,7 @@
   <MIL_GlobalWindows>Skin large windows with the Morrowind theme</MIL_GlobalWindows>
   <MIL_Reset>Reset to defaults</MIL_Reset>
   <MIL_SettingsBlurb>This version focuses on the Morrowind style menu presentation only. It replaces the pawn gear tab with a tabbed inventory, equipment, and stats layout while keeping normal RimWorld trading, hauling, and stockpile behavior untouched.</MIL_SettingsBlurb>
+  <MIL_DebugHeader>Debug</MIL_DebugHeader>
+  <MIL_DebugTraderVisitBlurb>Dev Mode only. Forces a friendly trader caravan to visit your current settlement map.</MIL_DebugTraderVisitBlurb>
+  <MIL_ForceTraderVisit>Force trader visit</MIL_ForceTraderVisit>
 </LanguageData>

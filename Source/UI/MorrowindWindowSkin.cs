@@ -69,6 +69,62 @@ public static class MorrowindWindowSkin
         DrawDarkFill(rect, fillOverride ?? MorrowindUiResources.PanelShadeSoft);
     }
 
+    public static void DrawMainButton(Rect rect, bool mouseOver)
+    {
+        DrawDarkFill(rect, mouseOver ? MorrowindUiResources.PanelShadeSoft : MorrowindUiResources.PanelShade);
+        DrawSimpleFrame(rect);
+        if (mouseOver)
+        {
+            Color old = GUI.color;
+            GUI.color = MorrowindUiResources.SelectedOverlay;
+            GUI.DrawTexture(rect.ContractedBy(3f), BaseContent.WhiteTex);
+            GUI.color = old;
+        }
+    }
+
+    public static void DrawCenteredText(Rect rect, string label, Color color)
+    {
+        if (string.IsNullOrEmpty(label))
+        {
+            return;
+        }
+
+        Color oldColor = GUI.color;
+        TextAnchor oldAnchor = Text.Anchor;
+        GameFont oldFont = Text.Font;
+        GUI.color = color;
+        Text.Anchor = TextAnchor.MiddleCenter;
+        Text.Font = GameFont.Small;
+        Widgets.Label(rect, label);
+        Text.Anchor = oldAnchor;
+        Text.Font = oldFont;
+        GUI.color = oldColor;
+    }
+
+    public static bool DrawCloseButton(Rect rect)
+    {
+        Rect buttonRect = new(rect.xMax - 18f, rect.y, 18f, 18f);
+        bool mouseOver = Mouse.IsOver(buttonRect);
+        bool clicked = Widgets.ButtonInvisible(buttonRect);
+
+        Color oldColor = GUI.color;
+        GUI.color = mouseOver ? MorrowindUiResources.Gold : MorrowindUiResources.GoldSoft;
+        GUI.DrawTexture(buttonRect, BaseContent.WhiteTex);
+
+        GUI.color = MorrowindUiResources.GoldDark;
+        GUI.DrawTexture(new Rect(buttonRect.x, buttonRect.y, buttonRect.width, 1f), BaseContent.WhiteTex);
+        GUI.DrawTexture(new Rect(buttonRect.x, buttonRect.yMax - 1f, buttonRect.width, 1f), BaseContent.WhiteTex);
+        GUI.DrawTexture(new Rect(buttonRect.x, buttonRect.y, 1f, buttonRect.height), BaseContent.WhiteTex);
+        GUI.DrawTexture(new Rect(buttonRect.xMax - 1f, buttonRect.y, 1f, buttonRect.height), BaseContent.WhiteTex);
+
+        GUI.color = MorrowindUiResources.PanelShade;
+        DrawDiagonalLine(buttonRect.center, 7f, 1.35f, 45f);
+        DrawDiagonalLine(buttonRect.center, 7f, 1.35f, -45f);
+        GUI.color = oldColor;
+
+        return clicked;
+    }
+
     public static void DrawSubtleDivider(Rect rect)
     {
         Color old = GUI.color;
@@ -83,6 +139,14 @@ public static class MorrowindWindowSkin
         GUI.color = color;
         GUI.DrawTexture(rect, BaseContent.WhiteTex);
         GUI.color = old;
+    }
+
+    private static void DrawDiagonalLine(Vector2 center, float length, float thickness, float angle)
+    {
+        Matrix4x4 oldMatrix = GUI.matrix;
+        GUIUtility.RotateAroundPivot(angle, center);
+        GUI.DrawTexture(new Rect(center.x - (length / 2f), center.y - (thickness / 2f), length, thickness), BaseContent.WhiteTex);
+        GUI.matrix = oldMatrix;
     }
 
     private static void DrawOuterFrame(Rect rect)
