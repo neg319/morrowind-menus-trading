@@ -9,7 +9,10 @@
     <workSpeedStat>GeneralLaborSpeed</workSpeedStat>
     <workSkill>Crafting</workSkill>
     <skillRequirements>
-      <Crafting>10</Crafting>
+      <li>
+        <skill>Crafting</skill>
+        <minLevel>10</minLevel>
+      </li>
     </skillRequirements>
     <workSkillLearnFactor>1</workSkillLearnFactor>
     <effectWorking>Smith</effectWorking>

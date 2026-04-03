@@ -160,8 +160,8 @@ public static class MorrowindGearTabRenderer
         DrawLabelLeft(new Rect(inner.x, inner.y + 120f, inner.width, 22f), $"Raw resources: {colonyItems.Count(IsRawResourceThing)}", MorrowindUiResources.TextMuted);
         DrawLabelLeft(new Rect(inner.x, inner.y + 144f, inner.width, 22f), $"Items: {colonyItems.Count(IsItemThing)}", MorrowindUiResources.TextMuted);
         DrawLabelLeft(new Rect(inner.x, inner.y + 168f, inner.width, 22f), $"Misc: {colonyItems.Count(IsMiscThing)}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 168f, inner.width, 22f), $"Move speed: {pawn.GetStatValue(StatDefOf.MoveSpeed):F2}", MorrowindUiResources.TextMuted);
-        DrawLabelLeft(new Rect(inner.x, inner.y + 192f, inner.width, 22f), $"Armor: {Mathf.RoundToInt((pawn.GetStatValue(StatDefOf.ArmorRating_Sharp) + pawn.GetStatValue(StatDefOf.ArmorRating_Blunt)) * 50f)}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 192f, inner.width, 22f), $"Move speed: {pawn.GetStatValue(StatDefOf.MoveSpeed):F2}", MorrowindUiResources.TextMuted);
+        DrawLabelLeft(new Rect(inner.x, inner.y + 216f, inner.width, 22f), $"Armor: {Mathf.RoundToInt((pawn.GetStatValue(StatDefOf.ArmorRating_Sharp) + pawn.GetStatValue(StatDefOf.ArmorRating_Blunt)) * 50f)}", MorrowindUiResources.TextMuted);
     }
 
     private static void DrawInventoryPane(Rect rect, Pawn pawn, MorrowindInventoryState state)
