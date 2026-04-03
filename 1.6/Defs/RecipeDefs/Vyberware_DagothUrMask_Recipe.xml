@@ -20,17 +20,17 @@
     <ingredients>
       <li>
         <filter>
-          <categories>
+          <stuffCategories>
             <li>Metallic</li>
-          </categories>
+          </stuffCategories>
         </filter>
         <count>40</count>
       </li>
     </ingredients>
     <fixedIngredientFilter>
-      <categories>
+      <stuffCategories>
         <li>Metallic</li>
-      </categories>
+      </stuffCategories>
     </fixedIngredientFilter>
     <products>
       <VB_DagothUrMask>1</VB_DagothUrMask>

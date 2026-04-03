@@ -17,6 +17,9 @@
     <alwaysHaulable>true</alwaysHaulable>
     <tickerType>Never</tickerType>
     <useHitPoints>true</useHitPoints>
+    <thingCategories>
+      <li>ArmorHeadgear</li>
+    </thingCategories>
     <comps>
       <li>
         <compClass>CompForbiddable</compClass>
