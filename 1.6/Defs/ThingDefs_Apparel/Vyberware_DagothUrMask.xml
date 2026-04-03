@@ -20,12 +20,7 @@
     <thingCategories>
       <li>ArmorHeadgear</li>
     </thingCategories>
-    <comps>
-      <li>
-        <compClass>CompForbiddable</compClass>
-      </li>
-    </comps>
-    <statBases>
+<statBases>
       <WorkToMake>3200</WorkToMake>
       <Mass>2.0</Mass>
       <MaxHitPoints>100</MaxHitPoints>
