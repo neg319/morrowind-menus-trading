@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <RecipeDef>
+    <defName>Make_VB_DagothUrMask</defName>
+    <label>make Dagoth Ur's Mask</label>
+    <description>Forge Dagoth Ur's Mask from metal.</description>
+    <jobString>Forging Dagoth Ur's Mask.</jobString>
+    <workAmount>1600</workAmount>
+    <workSpeedStat>GeneralLaborSpeed</workSpeedStat>
+    <workSkill>Crafting</workSkill>
+    <skillRequirements>
+      <li>
+        <skill>Crafting</skill>
+        <minLevel>10</minLevel>
+      </li>
+    </skillRequirements>
+    <workSkillLearnFactor>1</workSkillLearnFactor>
+    <effectWorking>Smith</effectWorking>
+    <soundWorking>Recipe_Smith</soundWorking>
+    <allowMixingIngredients>true</allowMixingIngredients>
+    <recipeUsers>
+      <li>CraftingSpot</li>
+      <li>FueledSmithy</li>
+      <li>ElectricSmithy</li>
+    </recipeUsers>
+    <ingredients>
+      <li>
+        <filter>
+          <thingDefs>
+            <li>Steel</li>
+            <li>Plasteel</li>
+            <li>Silver</li>
+            <li>Gold</li>
+            <li>Uranium</li>
+            <li>Bioferrite</li>
+          </thingDefs>
+        </filter>
+        <count>40</count>
+      </li>
+    </ingredients>
+    <fixedIngredientFilter>
+      <thingDefs>
+        <li>Steel</li>
+        <li>Plasteel</li>
+        <li>Silver</li>
+        <li>Gold</li>
+        <li>Uranium</li>
+        <li>Bioferrite</li>
+      </thingDefs>
+    </fixedIngredientFilter>
+    <products>
+      <VB_DagothUrMask>1</VB_DagothUrMask>
+    </products>
+  </RecipeDef>
+</Defs>
