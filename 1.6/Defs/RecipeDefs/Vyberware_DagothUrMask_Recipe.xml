@@ -17,12 +17,6 @@
       <li>FueledSmithy</li>
       <li>ElectricSmithy</li>
     </recipeUsers>
-    <skillRequirements>
-      <li>
-        <skill>Crafting</skill>
-        <minLevel>2</minLevel>
-      </li>
-    </skillRequirements>
     <ingredients>
       <li>
         <filter>

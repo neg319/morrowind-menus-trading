@@ -3,6 +3,7 @@ using Verse;
 
 namespace MorrowindMenusTrading.UI;
 
+[StaticConstructorOnStartup]
 public static class MorrowindUiResources
 {
     private static Texture2D background;

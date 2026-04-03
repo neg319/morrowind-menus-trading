@@ -47,8 +47,5 @@
         <li>Helmet</li>
       </tags>
     </apparel>
-    <thingCategories>
-      <li>ApparelHead</li>
-    </thingCategories>
   </ThingDef>
 </Defs>
