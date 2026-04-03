@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -32,28 +33,35 @@ public static class MorrowindTradeDialogRenderer
             return;
         }
 
-        TradeSession.deal.UpdateCurrencyCount();
-        Tradeable currencyTradeable = GetCurrencyTradeable();
-        List<Tradeable> tradeables = BuildTradeables(dialog);
-        Vector2 scroll = GetScroll(dialog);
+        try
+        {
+            TradeSession.deal.UpdateCurrencyCount();
+            Tradeable currencyTradeable = GetCurrencyTradeable();
+            List<Tradeable> tradeables = BuildTradeables(dialog);
+            Vector2 scroll = GetScroll(dialog);
 
-        MorrowindWindowSkin.DrawWindow(rect);
+            MorrowindWindowSkin.DrawWindow(rect);
 
-        Rect titleRect = new(rect.x + 10f, rect.y + 8f, rect.width - 20f, TitleHeight);
-        Rect topBarRect = new(rect.x + 10f, titleRect.yMax + 5f, rect.width - 20f, TopBarHeight);
-        Rect contentRect = new(rect.x + 10f, topBarRect.yMax + 8f, rect.width - 20f, rect.height - TitleHeight - TopBarHeight - FooterHeight - 34f);
-        Rect footerRect = new(rect.x + 10f, contentRect.yMax + 8f, rect.width - 20f, FooterHeight);
+            Rect titleRect = new(rect.x + 10f, rect.y + 8f, rect.width - 20f, TitleHeight);
+            Rect topBarRect = new(rect.x + 10f, titleRect.yMax + 5f, rect.width - 20f, TopBarHeight);
+            Rect contentRect = new(rect.x + 10f, topBarRect.yMax + 8f, rect.width - 20f, rect.height - TitleHeight - TopBarHeight - FooterHeight - 34f);
+            Rect footerRect = new(rect.x + 10f, contentRect.yMax + 8f, rect.width - 20f, FooterHeight);
 
-        DrawTitleBar(titleRect);
-        DrawTopBar(dialog, topBarRect);
+            DrawTitleBar(titleRect);
+            DrawTopBar(dialog, topBarRect);
 
-        Rect leftRect = new(contentRect.x, contentRect.y, LeftPaneWidth, contentRect.height);
-        Rect rightRect = new(leftRect.xMax + 10f, contentRect.y, contentRect.width - LeftPaneWidth - 10f, contentRect.height);
+            Rect leftRect = new(contentRect.x, contentRect.y, LeftPaneWidth, contentRect.height);
+            Rect rightRect = new(leftRect.xMax + 10f, contentRect.y, contentRect.width - LeftPaneWidth - 10f, contentRect.height);
 
-        DrawSummaryPane(leftRect, currencyTradeable, tradeables);
-        DrawTradeListPane(rightRect, tradeables, ref scroll);
-        SetScroll(dialog, scroll);
-        DrawFooter(dialog, footerRect, tradeables);
+            DrawSummaryPane(leftRect, currencyTradeable, tradeables);
+            DrawTradeListPane(rightRect, tradeables, ref scroll);
+            SetScroll(dialog, scroll);
+            DrawFooter(dialog, footerRect, tradeables);
+        }
+        finally
+        {
+            MorrowindWindowSkin.ResetTextState();
+        }
     }
 
     private static void DrawTitleBar(Rect rect)
@@ -239,8 +247,7 @@ public static class MorrowindTradeDialogRenderer
 
         GetColumns(rect.ContractedBy(3f), out Rect itemRect, out Rect yoursRect, out Rect traderRect, out Rect soldRect, out Rect boughtRect, out Rect priceRect, out Rect totalRect);
 
-        Color infoColor = trad.TraderWillTrade || TradeSession.giftMode ? MorrowindUiResources.TextPrimary : MorrowindUiResources.TextMuted;
-        TransferableUIUtility.DrawTransferableInfo(trad, itemRect, infoColor);
+        DrawTradeItemCell(itemRect, trad, rect);
 
         DrawValueCell(yoursRect, trad.CountHeldBy(Transactor.Colony).ToStringCached(), MorrowindUiResources.TextPrimary);
         DrawValueCell(traderRect, trad.CountHeldBy(Transactor.Trader).ToStringCached(), MorrowindUiResources.TextPrimary);
@@ -263,6 +270,84 @@ public static class MorrowindTradeDialogRenderer
         {
             TooltipHandler.TipRegion(rect, "This trader will not trade this item right now.");
         }
+    }
+
+    private static void DrawTradeItemCell(Rect rect, Tradeable trad, Rect rowRect)
+    {
+        Thing thing = trad.AnyThing;
+        Rect iconRect = new(rect.x + 2f, rect.y + 1f, Mathf.Min(30f, rect.height - 2f), Mathf.Min(30f, rect.height - 2f));
+        MorrowindWindowSkin.DrawSlot(iconRect, false);
+        DrawThingIcon(iconRect.ContractedBy(4f), thing, trad);
+        if (thing != null && thing.stackCount > 1)
+        {
+            DrawLabelRight(iconRect.ContractedBy(3f), thing.stackCount.ToStringCached(), MorrowindUiResources.TextPrimary, GameFont.Tiny);
+        }
+
+        Rect labelRect = new(iconRect.xMax + 8f, rect.y, rect.width - (iconRect.width + 10f), rect.height);
+        string label = BuildTradeItemLabel(trad, thing);
+        DrawLabelLeft(labelRect, label, trad.TraderWillTrade || TradeSession.giftMode ? MorrowindUiResources.TextPrimary : MorrowindUiResources.TextMuted, GameFont.Tiny);
+        TooltipHandler.TipRegion(rowRect, BuildTradeItemTooltip(trad, thing));
+    }
+
+    private static void DrawThingIcon(Rect rect, Thing thing, Tradeable trad)
+    {
+        Texture icon = thing?.def?.uiIcon ?? trad?.ThingDef?.uiIcon ?? BaseContent.BadTex;
+        Color oldColor = GUI.color;
+        GUI.color = thing != null ? thing.DrawColor : Color.white;
+        GUI.DrawTexture(rect, icon, ScaleMode.ScaleToFit, true);
+        GUI.color = oldColor;
+    }
+
+    private static string BuildTradeItemLabel(Tradeable trad, Thing thing)
+    {
+        string label = thing != null
+            ? thing.LabelCap.ToString()
+            : trad != null
+                ? trad.LabelCap.ToString()
+                : "Unknown item";
+
+        if (thing == null && trad?.ThingDef?.label != null)
+        {
+            label = trad.ThingDef.label.CapitalizeFirst();
+        }
+
+        if (thing != null && QualityUtility.TryGetQuality(thing, out QualityCategory quality))
+        {
+            label += $" ({quality.GetLabel().CapitalizeFirst()})";
+        }
+
+        return label;
+    }
+
+    private static string BuildTradeItemTooltip(Tradeable trad, Thing thing)
+    {
+        StringBuilder builder = new();
+        builder.AppendLine(BuildTradeItemLabel(trad, thing));
+        builder.AppendLine();
+        builder.AppendLine($"Yours: {trad.CountHeldBy(Transactor.Colony)}");
+        builder.AppendLine($"Trader: {trad.CountHeldBy(Transactor.Trader)}");
+        builder.AppendLine($"Buy price: {FormatCurrency(trad.GetPriceFor(TradeAction.PlayerBuys))}");
+        builder.AppendLine($"Sell price: {FormatCurrency(trad.GetPriceFor(TradeAction.PlayerSells))}");
+
+        if (thing != null)
+        {
+            if (thing.stackCount > 1)
+            {
+                builder.AppendLine($"Stack: {thing.stackCount}");
+            }
+
+            if (thing.MarketValue > 0f)
+            {
+                builder.AppendLine($"Market value: {thing.MarketValue:0.##}");
+            }
+
+            if (QualityUtility.TryGetQuality(thing, out QualityCategory thingQuality))
+            {
+                builder.AppendLine($"Quality: {thingQuality.GetLabel().CapitalizeFirst()}");
+            }
+        }
+
+        return builder.ToString().TrimEnd();
     }
 
     private static void DrawTradeCountControl(Rect rect, Tradeable trad, bool selling)

@@ -82,6 +82,58 @@ public static class MorrowindWindowSkin
         }
     }
 
+    public static void DrawTextButton(Rect rect, string label, bool mouseOver, bool active)
+    {
+        Color fill = active
+            ? (mouseOver ? MorrowindUiResources.PanelShadeSoft : MorrowindUiResources.PanelShade)
+            : new Color(MorrowindUiResources.PanelShade.r * 0.75f, MorrowindUiResources.PanelShade.g * 0.75f, MorrowindUiResources.PanelShade.b * 0.75f, MorrowindUiResources.PanelShade.a);
+
+        DrawDarkFill(rect, fill);
+        DrawSimpleFrame(rect);
+
+        if (mouseOver && active)
+        {
+            Color old = GUI.color;
+            GUI.color = MorrowindUiResources.SelectedOverlay;
+            GUI.DrawTexture(rect.ContractedBy(3f), BaseContent.WhiteTex);
+            GUI.color = old;
+        }
+
+        Color textColor = active
+            ? (mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold)
+            : MorrowindUiResources.GoldDark;
+        DrawCenteredText(rect.ContractedBy(4f), label, textColor);
+    }
+
+    public static void DrawIconButton(Rect rect, Texture icon, bool mouseOver, bool active)
+    {
+        Color fill = active
+            ? (mouseOver ? MorrowindUiResources.PanelShadeSoft : MorrowindUiResources.PanelShade)
+            : new Color(MorrowindUiResources.PanelShade.r * 0.75f, MorrowindUiResources.PanelShade.g * 0.75f, MorrowindUiResources.PanelShade.b * 0.75f, MorrowindUiResources.PanelShade.a);
+
+        DrawDarkFill(rect, fill);
+        DrawSimpleFrame(rect);
+
+        if (mouseOver && active)
+        {
+            Color old = GUI.color;
+            GUI.color = MorrowindUiResources.SelectedOverlay;
+            GUI.DrawTexture(rect.ContractedBy(3f), BaseContent.WhiteTex);
+            GUI.color = old;
+        }
+
+        if (icon != null)
+        {
+            Rect iconRect = rect.ContractedBy(Mathf.Max(3f, Mathf.Min(rect.width, rect.height) * 0.14f));
+            Color old = GUI.color;
+            GUI.color = active
+                ? (mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold)
+                : MorrowindUiResources.GoldDark;
+            GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit, true);
+            GUI.color = old;
+        }
+    }
+
     public static void DrawCenteredText(Rect rect, string label, Color color)
     {
         if (string.IsNullOrEmpty(label))
@@ -99,6 +151,14 @@ public static class MorrowindWindowSkin
         Text.Anchor = oldAnchor;
         Text.Font = oldFont;
         GUI.color = oldColor;
+    }
+
+    public static void ResetTextState()
+    {
+        GUI.color = Color.white;
+        Text.Anchor = TextAnchor.UpperLeft;
+        Text.Font = GameFont.Small;
+        Text.WordWrap = true;
     }
 
     public static bool DrawCloseButton(Rect rect)

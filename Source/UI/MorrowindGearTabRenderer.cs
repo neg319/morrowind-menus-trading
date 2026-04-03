@@ -26,38 +26,45 @@ public static class MorrowindGearTabRenderer
             return;
         }
 
-        MorrowindInventoryState state = MorrowindInventoryStateStore.For(pawn);
-        Text.Font = GameFont.Small;
-        GUI.color = Color.white;
-        MorrowindWindowSkin.DrawWindow(rect);
-
-        Rect titleRect = new(rect.x + 10f, rect.y + 8f, rect.width - 20f, TitleHeight);
-        Rect topBarRect = new(rect.x + 10f, titleRect.yMax + 5f, rect.width - 20f, ModeTabsHeight);
-        Rect contentRect = new(rect.x + 10f, topBarRect.yMax + 8f, rect.width - 20f, rect.height - TitleHeight - ModeTabsHeight - FooterHeight - 34f);
-        Rect footerRect = new(rect.x + 10f, contentRect.yMax + 8f, rect.width - 20f, FooterHeight);
-
-        DrawTitleBar(titleRect, pawn);
-        DrawTopBar(topBarRect, pawn, state);
-
-        Rect leftRect = new(contentRect.x, contentRect.y, LeftPaneWidth, contentRect.height);
-        Rect rightRect = new(leftRect.xMax + 10f, contentRect.y, contentRect.width - LeftPaneWidth - 10f, contentRect.height);
-
-        DrawLeftPane(leftRect, pawn);
-
-        switch (state.activeTab)
+        try
         {
-            case MorrowindInventoryTab.Inventory:
-                DrawInventoryPane(rightRect, pawn, state);
-                break;
-            case MorrowindInventoryTab.Equipment:
-                DrawEquipmentPane(rightRect, pawn, state);
-                break;
-            case MorrowindInventoryTab.Stats:
-                DrawStatsPane(rightRect, pawn, state);
-                break;
-        }
+            MorrowindInventoryState state = MorrowindInventoryStateStore.For(pawn);
+            Text.Font = GameFont.Small;
+            GUI.color = Color.white;
+            MorrowindWindowSkin.DrawWindow(rect);
 
-        DrawFooter(footerRect, pawn, state);
+            Rect titleRect = new(rect.x + 10f, rect.y + 8f, rect.width - 20f, TitleHeight);
+            Rect topBarRect = new(rect.x + 10f, titleRect.yMax + 5f, rect.width - 20f, ModeTabsHeight);
+            Rect contentRect = new(rect.x + 10f, topBarRect.yMax + 8f, rect.width - 20f, rect.height - TitleHeight - ModeTabsHeight - FooterHeight - 34f);
+            Rect footerRect = new(rect.x + 10f, contentRect.yMax + 8f, rect.width - 20f, FooterHeight);
+
+            DrawTitleBar(titleRect, pawn);
+            DrawTopBar(topBarRect, pawn, state);
+
+            Rect leftRect = new(contentRect.x, contentRect.y, LeftPaneWidth, contentRect.height);
+            Rect rightRect = new(leftRect.xMax + 10f, contentRect.y, contentRect.width - LeftPaneWidth - 10f, contentRect.height);
+
+            DrawLeftPane(leftRect, pawn);
+
+            switch (state.activeTab)
+            {
+                case MorrowindInventoryTab.Inventory:
+                    DrawInventoryPane(rightRect, pawn, state);
+                    break;
+                case MorrowindInventoryTab.Equipment:
+                    DrawEquipmentPane(rightRect, pawn, state);
+                    break;
+                case MorrowindInventoryTab.Stats:
+                    DrawStatsPane(rightRect, pawn, state);
+                    break;
+            }
+
+            DrawFooter(footerRect, pawn, state);
+        }
+        finally
+        {
+            MorrowindWindowSkin.ResetTextState();
+        }
     }
 
     private static void DrawTitleBar(Rect rect, Pawn pawn)
