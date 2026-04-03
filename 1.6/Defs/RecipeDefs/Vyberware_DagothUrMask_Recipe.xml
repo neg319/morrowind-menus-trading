@@ -3,7 +3,7 @@
   <RecipeDef>
     <defName>Make_VB_DagothUrMask</defName>
     <label>make Dagoth Ur's Mask</label>
-    <description>Forge Dagoth Ur's Mask from any metallic material.</description>
+    <description>Forge Dagoth Ur's Mask from metal.</description>
     <jobString>Forging Dagoth Ur's Mask.</jobString>
     <workAmount>3200</workAmount>
     <workSpeedStat>GeneralLaborSpeed</workSpeedStat>
@@ -20,17 +20,27 @@
     <ingredients>
       <li>
         <filter>
-          <stuffCategories>
-            <li>Metallic</li>
-          </stuffCategories>
+          <thingDefs>
+            <li>Steel</li>
+            <li>Plasteel</li>
+            <li>Silver</li>
+            <li>Gold</li>
+            <li>Uranium</li>
+            <li>Bioferrite</li>
+          </thingDefs>
         </filter>
         <count>40</count>
       </li>
     </ingredients>
     <fixedIngredientFilter>
-      <stuffCategories>
-        <li>Metallic</li>
-      </stuffCategories>
+      <thingDefs>
+        <li>Steel</li>
+        <li>Plasteel</li>
+        <li>Silver</li>
+        <li>Gold</li>
+        <li>Uranium</li>
+        <li>Bioferrite</li>
+      </thingDefs>
     </fixedIngredientFilter>
     <products>
       <VB_DagothUrMask>1</VB_DagothUrMask>
