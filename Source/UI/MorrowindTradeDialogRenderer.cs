@@ -172,7 +172,7 @@ public static class MorrowindTradeDialogRenderer
         if (TradeSession.giftMode && TradeSession.trader?.Faction != null)
         {
             y += 8f;
-            int goodwill = FactionGiftUtility.GetGoodwillChange(TradeSession.deal.AllTradeables, TradeSession.trader.Faction);
+            int goodwill = GetGiftGoodwillChange();
             y = DrawSummaryLine(inner, y, "Goodwill", goodwill.ToStringWithSign(), MorrowindUiResources.TextPrimary);
         }
 
@@ -419,7 +419,7 @@ public static class MorrowindTradeDialogRenderer
     {
         if (TradeSession.giftMode && TradeSession.trader?.Faction != null)
         {
-            int goodwill = FactionGiftUtility.GetGoodwillChange(TradeSession.deal.AllTradeables, TradeSession.trader.Faction);
+            int goodwill = GetGiftGoodwillChange();
             return $"Offer ({goodwill.ToStringWithSign()})";
         }
 
@@ -629,6 +629,35 @@ public static class MorrowindTradeDialogRenderer
         else
         {
             Sorter2Field?.SetValue(dialog, sorter);
+        }
+    }
+
+
+    private static int GetGiftGoodwillChange()
+    {
+        if (!TradeSession.giftMode || TradeSession.trader?.Faction == null || TradeSession.deal == null)
+        {
+            return 0;
+        }
+
+        try
+        {
+            Type utilityType = AccessTools.TypeByName("RimWorld.FactionGiftUtility") ?? AccessTools.TypeByName("FactionGiftUtility");
+            MethodInfo goodwillMethod = utilityType != null
+                ? AccessTools.Method(utilityType, "GetGoodwillChange", new[] { typeof(List<Tradeable>), typeof(Faction) })
+                : null;
+
+            if (goodwillMethod == null)
+            {
+                return 0;
+            }
+
+            object result = goodwillMethod.Invoke(null, new object[] { TradeSession.deal.AllTradeables, TradeSession.trader.Faction });
+            return result is int goodwill ? goodwill : 0;
+        }
+        catch
+        {
+            return 0;
         }
     }
 
