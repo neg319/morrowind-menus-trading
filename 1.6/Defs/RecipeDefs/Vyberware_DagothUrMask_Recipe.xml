@@ -5,9 +5,15 @@
     <label>make Dagoth Ur's Mask</label>
     <description>Forge Dagoth Ur's Mask from metal.</description>
     <jobString>Forging Dagoth Ur's Mask.</jobString>
-    <workAmount>3200</workAmount>
+    <workAmount>1600</workAmount>
     <workSpeedStat>GeneralLaborSpeed</workSpeedStat>
     <workSkill>Crafting</workSkill>
+    <skillRequirements>
+      <li>
+        <skill>Crafting</skill>
+        <minLevel>10</minLevel>
+      </li>
+    </skillRequirements>
     <workSkillLearnFactor>1</workSkillLearnFactor>
     <effectWorking>Smith</effectWorking>
     <soundWorking>Recipe_Smith</soundWorking>

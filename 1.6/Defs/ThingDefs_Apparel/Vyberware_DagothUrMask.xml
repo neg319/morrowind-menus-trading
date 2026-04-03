@@ -21,7 +21,7 @@
       <li>ArmorHeadgear</li>
     </thingCategories>
 <statBases>
-      <WorkToMake>3200</WorkToMake>
+      <WorkToMake>1600</WorkToMake>
       <Mass>2.0</Mass>
       <MaxHitPoints>100</MaxHitPoints>
       <ArmorRating_Sharp>0.5</ArmorRating_Sharp>
