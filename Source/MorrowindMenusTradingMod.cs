@@ -32,7 +32,8 @@ public sealed class MorrowindMenusTradingMod : Mod
         listing.CheckboxLabeled("MIL_GlobalWindows".Translate(), ref Settings.globalMorrowindWindows);
         listing.GapLine();
         listing.Label("Quick inventory tabs");
-        listing.Label("Choose which quick tabs appear in the inventory screen and reorder them with the arrow buttons.");
+        listing.Label("The All tab is always shown first and cannot be disabled.");
+        listing.Label("Choose which other quick tabs appear in the inventory screen and reorder them with the arrow buttons.");
         listing.Gap(6f);
 
         DrawQuickTabSettings(listing);
@@ -111,6 +112,7 @@ public sealed class MorrowindMenusTradingMod : Mod
     {
         return category switch
         {
+            MorrowindItemCategory.All => "All",
             MorrowindItemCategory.Weapons => "Weapons",
             MorrowindItemCategory.Apparel => "Apparel",
             MorrowindItemCategory.Foods => "Food",

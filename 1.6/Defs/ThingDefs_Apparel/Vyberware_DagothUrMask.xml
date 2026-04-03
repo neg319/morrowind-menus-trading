@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <ThingDef>
+    <defName>VB_DagothUrMask</defName>
+    <label>Dagoth Ur's Mask</label>
+    <description>A striking metal mask inspired by ancient ashland imagery. It is worn as heavy headgear and protects the entire head like a basic helmet.</description>
+    <thingClass>Apparel</thingClass>
+    <category>Item</category>
+    <graphicData>
+      <texPath>Things/Pawn/Humanlike/Apparel/DagothUrMask/DagothUrMask</texPath>
+      <graphicClass>Graphic_Multi</graphicClass>
+      <drawSize>(1.0,1.0)</drawSize>
+    </graphicData>
+    <uiIconPath>Things/Pawn/Humanlike/Apparel/DagothUrMask/DagothUrMask</uiIconPath>
+    <selectable>true</selectable>
+    <altitudeLayer>Item</altitudeLayer>
+    <alwaysHaulable>true</alwaysHaulable>
+    <tickerType>Never</tickerType>
+    <useHitPoints>true</useHitPoints>
+    <comps>
+      <li>
+        <compClass>CompForbiddable</compClass>
+      </li>
+    </comps>
+    <statBases>
+      <WorkToMake>3200</WorkToMake>
+      <Mass>2.0</Mass>
+      <MaxHitPoints>100</MaxHitPoints>
+      <ArmorRating_Sharp>0.5</ArmorRating_Sharp>
+      <ArmorRating_Blunt>0.5</ArmorRating_Blunt>
+      <ArmorRating_Heat>0.5</ArmorRating_Heat>
+      <Insulation_Cold>0.15</Insulation_Cold>
+      <Insulation_Heat>0.0</Insulation_Heat>
+      <EquipDelay>1.5</EquipDelay>
+      <MarketValue>100</MarketValue>
+    </statBases>
+    <apparel>
+      <wornGraphicPath>Things/Pawn/Humanlike/Apparel/DagothUrMask/DagothUrMask</wornGraphicPath>
+      <layers>
+        <li>Overhead</li>
+      </layers>
+      <bodyPartGroups>
+        <li>FullHead</li>
+      </bodyPartGroups>
+      <tags>
+        <li>Armor</li>
+        <li>Helmet</li>
+      </tags>
+    </apparel>
+    <thingCategories>
+      <li>ApparelHead</li>
+    </thingCategories>
+  </ThingDef>
+</Defs>

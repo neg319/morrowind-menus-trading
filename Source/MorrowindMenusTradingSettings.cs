@@ -10,7 +10,7 @@ public sealed class MorrowindMenusTradingSettings : ModSettings
 {
     public bool morrowindInventoryUi = true;
     public bool globalMorrowindWindows = true;
-    public List<string> quickTabOrder = new();
+    public List<string> quickTabOrder = GetDefaultQuickTabOrder();
 
     public override void ExposeData()
     {
@@ -36,7 +36,7 @@ public sealed class MorrowindMenusTradingSettings : ModSettings
         NormalizeQuickTabOrder();
         return quickTabOrder
             .Select(ParseCategory)
-            .Where(category => category.HasValue)
+            .Where(category => category.HasValue && category.Value != MorrowindItemCategory.All)
             .Select(category => category.Value)
             .Distinct()
             .ToList();
@@ -45,12 +45,17 @@ public sealed class MorrowindMenusTradingSettings : ModSettings
     public bool IsQuickTabEnabled(MorrowindItemCategory category)
     {
         NormalizeQuickTabOrder();
-        return quickTabOrder.Contains(category.ToString());
+        return category == MorrowindItemCategory.All || quickTabOrder.Contains(category.ToString());
     }
 
     public void SetQuickTabEnabled(MorrowindItemCategory category, bool enabled)
     {
         NormalizeQuickTabOrder();
+        if (category == MorrowindItemCategory.All)
+        {
+            return;
+        }
+
         string key = category.ToString();
         bool isEnabled = quickTabOrder.Contains(key);
         if (enabled && !isEnabled)
@@ -59,11 +64,6 @@ public sealed class MorrowindMenusTradingSettings : ModSettings
         }
         else if (!enabled && isEnabled)
         {
-            if (quickTabOrder.Count <= 1)
-            {
-                return;
-            }
-
             quickTabOrder.Remove(key);
         }
     }
@@ -71,6 +71,11 @@ public sealed class MorrowindMenusTradingSettings : ModSettings
     public void MoveQuickTab(MorrowindItemCategory category, int delta)
     {
         NormalizeQuickTabOrder();
+        if (category == MorrowindItemCategory.All)
+        {
+            return;
+        }
+
         string key = category.ToString();
         int index = quickTabOrder.IndexOf(key);
         if (index < 0)
@@ -102,11 +107,6 @@ public sealed class MorrowindMenusTradingSettings : ModSettings
                     normalized.Add(normalizedKey);
                 }
             }
-        }
-
-        if (normalized.Count == 0)
-        {
-            normalized = GetDefaultQuickTabOrder();
         }
 
         quickTabOrder = normalized;

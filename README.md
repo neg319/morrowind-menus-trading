@@ -17,3 +17,7 @@ This stripped down version does not change stockpiles, hauling, pawn trading, in
 ## Build
 
 Compile with the included GitHub workflow or build `Source/MorrowindMenusTrading.csproj`.
+
+
+## Added content
+- Dagoth Ur's Mask: a craftable headgear item with directional textures and simple-helmet style protection.

@@ -190,21 +190,19 @@ public static class MorrowindGearTabRenderer
 
     private static void DrawCategoryTabs(Rect rect, Pawn pawn, MorrowindInventoryState state)
     {
-        IReadOnlyList<MorrowindItemCategory> configuredTabs = MorrowindMenusTradingMod.Settings?.GetQuickTabs()
+        List<MorrowindItemCategory> configuredTabs = (MorrowindMenusTradingMod.Settings?.GetQuickTabs()
             ?? MorrowindMenusTradingSettings.GetDefaultQuickTabOrder()
                 .Select(key => Enum.TryParse(key, out MorrowindItemCategory category) ? (MorrowindItemCategory?)category : null)
-                .Where(category => category.HasValue)
+                .Where(category => category.HasValue && category.Value != MorrowindItemCategory.All)
                 .Select(category => category.Value)
-                .ToList();
+                .ToList()).ToList();
 
-        if (configuredTabs.Count == 0)
-        {
-            configuredTabs = new List<MorrowindItemCategory> { MorrowindItemCategory.Weapons };
-        }
+        List<MorrowindItemCategory> visibleTabs = new() { MorrowindItemCategory.All };
+        visibleTabs.AddRange(configuredTabs.Where(category => category != MorrowindItemCategory.All));
 
-        if (!configuredTabs.Contains(state.activeCategory))
+        if (!visibleTabs.Contains(state.activeCategory))
         {
-            state.activeCategory = configuredTabs[0];
+            state.activeCategory = MorrowindItemCategory.All;
         }
 
         float dropdownWidth = 92f;
@@ -212,9 +210,9 @@ public static class MorrowindGearTabRenderer
         float x = rect.x;
         float maxTabsWidth = rect.width - dropdownWidth - tabGap;
 
-        for (int i = 0; i < configuredTabs.Count; i++)
+        for (int i = 0; i < visibleTabs.Count; i++)
         {
-            MorrowindItemCategory category = configuredTabs[i];
+            MorrowindItemCategory category = visibleTabs[i];
             string label = MorrowindMenusTradingMod.GetQuickTabLabel(category);
             float width = Mathf.Clamp(Text.CalcSize(label).x + 18f, 48f, 96f);
             if (x + width > rect.x + maxTabsWidth)
@@ -280,7 +278,7 @@ public static class MorrowindGearTabRenderer
             return MatchesExtraCategorySelection(thing, state.selectedExtraCategoryDefs);
         }
 
-        return MatchesCategory(thing, state?.activeCategory ?? MorrowindItemCategory.Weapons);
+        return MatchesCategory(thing, state?.activeCategory ?? MorrowindItemCategory.All);
     }
 
     private static bool MatchesCategory(Thing thing, MorrowindItemCategory category)
@@ -292,6 +290,7 @@ public static class MorrowindGearTabRenderer
 
         return category switch
         {
+            MorrowindItemCategory.All => true,
             MorrowindItemCategory.Foods => IsFoodThing(thing),
             MorrowindItemCategory.Manufactured => IsManufacturedThing(thing),
             MorrowindItemCategory.RawResources => IsRawResourceThing(thing),
