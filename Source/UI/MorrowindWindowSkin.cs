@@ -153,14 +153,6 @@ public static class MorrowindWindowSkin
         GUI.color = oldColor;
     }
 
-    public static void ResetTextState()
-    {
-        GUI.color = Color.white;
-        Text.Anchor = TextAnchor.UpperLeft;
-        Text.Font = GameFont.Small;
-        Text.WordWrap = true;
-    }
-
     public static bool DrawCloseButton(Rect rect)
     {
         Rect buttonRect = new(rect.xMax - 18f, rect.y, 18f, 18f);

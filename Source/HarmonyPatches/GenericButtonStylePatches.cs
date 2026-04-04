@@ -66,7 +66,6 @@ public static class GenericButtonStylePatches
         bool active = GUI.enabled;
 
         MorrowindWindowSkin.DrawTextButton(rect, label, mouseOver, active);
-        MorrowindWindowSkin.ResetTextState();
         return clicked && active;
     }
 
@@ -77,7 +76,6 @@ public static class GenericButtonStylePatches
         bool active = GUI.enabled;
 
         MorrowindWindowSkin.DrawIconButton(rect, icon, mouseOver, active);
-        MorrowindWindowSkin.ResetTextState();
         return clicked && active;
     }
 }

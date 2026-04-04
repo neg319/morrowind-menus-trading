@@ -30,7 +30,6 @@ public static class CloseButtonStylePatches
         }
 
         __result = MorrowindWindowSkin.DrawCloseButton(rect);
-        MorrowindWindowSkin.ResetTextState();
         return false;
     }
 }

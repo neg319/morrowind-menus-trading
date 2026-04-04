@@ -30,7 +30,6 @@ public static class MainButtonStylePatches
         bool clicked = Widgets.ButtonInvisible(rect, true);
 
         DrawButton(rect, def, mouseOver);
-        MorrowindWindowSkin.ResetTextState();
 
         if (clicked)
         {
@@ -122,7 +121,6 @@ public static class MenuSectionStylePatches
         }
 
         MorrowindWindowSkin.DrawPanel(rect, inset: 4f);
-        MorrowindWindowSkin.ResetTextState();
         return false;
     }
 }
