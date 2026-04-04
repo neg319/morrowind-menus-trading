@@ -20,7 +20,7 @@ public static class MainButtonStylePatches
 
     public static bool Prefix(MainButtonWorker __instance, Rect rect)
     {
-        if (Current.ProgramState != ProgramState.Playing || !MorrowindMenusTradingMod.Settings.globalMorrowindWindows)
+        if (Current.ProgramState != ProgramState.Playing || (!MorrowindMenusTradingMod.Settings.globalMorrowindWindows && !TradeDialogStyleState.ShouldStyle))
         {
             return true;
         }
@@ -110,7 +110,7 @@ public static class MenuSectionStylePatches
 {
     public static bool Prefix(Rect rect)
     {
-        if (Current.ProgramState != ProgramState.Playing || !MorrowindMenusTradingMod.Settings.globalMorrowindWindows)
+        if (Current.ProgramState != ProgramState.Playing || (!MorrowindMenusTradingMod.Settings.globalMorrowindWindows && !TradeDialogStyleState.ShouldStyle))
         {
             return true;
         }

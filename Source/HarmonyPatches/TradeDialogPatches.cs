@@ -9,14 +9,33 @@ namespace MorrowindMenusTrading.HarmonyPatches;
 [HarmonyPatch(typeof(Dialog_Trade), nameof(Dialog_Trade.DoWindowContents))]
 public static class TradeDialogPatches
 {
-    public static bool Prefix(Dialog_Trade __instance, Rect inRect)
+    public static void Prefix(Dialog_Trade __instance, Rect inRect)
     {
         if (Current.ProgramState != ProgramState.Playing || !MorrowindMenusTradingMod.Settings.morrowindInventoryUi)
         {
-            return true;
+            return;
         }
 
-        MorrowindTradeDialogRenderer.Draw(__instance, inRect.ContractedBy(6f));
-        return false;
+        TradeDialogStyleState.Begin();
+    }
+
+    public static void Postfix()
+    {
+        if (!TradeDialogStyleState.Active)
+        {
+            return;
+        }
+
+        TradeDialogStyleState.End();
+    }
+
+    public static void Finalizer(System.Exception __exception)
+    {
+        if (!TradeDialogStyleState.Active)
+        {
+            return;
+        }
+
+        TradeDialogStyleState.End();
     }
 }

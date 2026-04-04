@@ -134,6 +134,30 @@ public static class MorrowindWindowSkin
         }
     }
 
+    public static void DrawOutlinedIconButton(Rect rect, Texture icon, bool mouseOver, bool active)
+    {
+        if (icon == null)
+        {
+            return;
+        }
+
+        Rect iconRect = rect.ContractedBy(Mathf.Max(1f, Mathf.Min(rect.width, rect.height) * 0.08f));
+        float outlineOffset = Mathf.Max(1f, Mathf.Round(Mathf.Min(iconRect.width, iconRect.height) * 0.05f));
+        Color outlineColor = active
+            ? (mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold)
+            : MorrowindUiResources.GoldDark;
+        Color fillColor = active
+            ? new Color(0.03f, 0.03f, 0.03f, 1f)
+            : new Color(0.08f, 0.08f, 0.08f, 0.95f);
+
+        DrawTextureOutline(icon, iconRect, outlineColor, outlineOffset);
+
+        Color old = GUI.color;
+        GUI.color = fillColor;
+        GUI.DrawTexture(iconRect.ContractedBy(outlineOffset * 0.8f), icon, ScaleMode.ScaleToFit, true);
+        GUI.color = old;
+    }
+
     public static void DrawCenteredText(Rect rect, string label, Color color)
     {
         if (string.IsNullOrEmpty(label))
@@ -151,6 +175,94 @@ public static class MorrowindWindowSkin
         Text.Anchor = oldAnchor;
         Text.Font = oldFont;
         GUI.color = oldColor;
+    }
+
+
+    public static void DrawCheckbox(Rect rect, bool isChecked, bool mouseOver, bool disabled)
+    {
+        DrawDarkFill(rect, disabled ? MorrowindUiResources.PanelShade : MorrowindUiResources.PanelShadeSoft);
+        DrawSimpleFrame(rect);
+
+        if (mouseOver && !disabled)
+        {
+            Color old = GUI.color;
+            GUI.color = MorrowindUiResources.SelectedOverlay;
+            GUI.DrawTexture(rect.ContractedBy(3f), BaseContent.WhiteTex);
+            GUI.color = old;
+        }
+
+        if (!isChecked)
+        {
+            return;
+        }
+
+        Color oldColor = GUI.color;
+        GUI.color = disabled ? MorrowindUiResources.GoldDark : MorrowindUiResources.Gold;
+        Rect inner = rect.ContractedBy(Mathf.Max(5f, Mathf.Min(rect.width, rect.height) * 0.22f));
+        DrawDiagonalLine(new Vector2(inner.x + (inner.width * 0.28f), inner.center.y + 1f), inner.width * 0.42f, 2f, 45f);
+        DrawDiagonalLine(new Vector2(inner.x + (inner.width * 0.60f), inner.center.y - 1f), inner.width * 0.9f, 2f, -45f);
+        GUI.color = oldColor;
+    }
+
+    public static void DrawTextFieldFrame(Rect rect, bool focused)
+    {
+        DrawDarkFill(rect, focused ? MorrowindUiResources.PanelShade : MorrowindUiResources.PanelShadeSoft);
+        DrawSimpleFrame(rect);
+        if (focused)
+        {
+            Color old = GUI.color;
+            GUI.color = MorrowindUiResources.SelectedOverlay;
+            GUI.DrawTexture(rect.ContractedBy(3f), BaseContent.WhiteTex);
+            GUI.color = old;
+        }
+    }
+
+    public static void DrawSliderOverlay(Rect rect, float normalized)
+    {
+        Rect trackRect = new Rect(rect.x, rect.center.y - 4f, rect.width, 8f);
+        DrawDarkFill(trackRect, MorrowindUiResources.PanelShadeSoft);
+        DrawSimpleFrame(trackRect.ExpandedBy(1f));
+
+        float knobWidth = Mathf.Clamp(rect.width * 0.08f, 10f, 18f);
+        float knobX = Mathf.Lerp(rect.x + 2f, rect.xMax - knobWidth - 2f, Mathf.Clamp01(normalized));
+        Rect knobRect = new Rect(knobX, rect.center.y - 10f, knobWidth, 20f);
+        DrawDarkFill(knobRect, MorrowindUiResources.PanelShade);
+        DrawSimpleFrame(knobRect);
+    }
+
+    public static void DrawScrollbarOverlay(Rect rect, float normalized, float sizeFraction, bool vertical)
+    {
+        DrawDarkFill(rect, MorrowindUiResources.PanelShadeSoft);
+        DrawSimpleFrame(rect);
+
+        normalized = Mathf.Clamp01(normalized);
+        sizeFraction = Mathf.Clamp(sizeFraction, 0.12f, 0.85f);
+        Rect thumbRect;
+        if (vertical)
+        {
+            float thumbHeight = Mathf.Max(14f, (rect.height - 4f) * sizeFraction);
+            float y = Mathf.Lerp(rect.y + 2f, rect.yMax - thumbHeight - 2f, normalized);
+            thumbRect = new Rect(rect.x + 2f, y, rect.width - 4f, thumbHeight);
+        }
+        else
+        {
+            float thumbWidth = Mathf.Max(14f, (rect.width - 4f) * sizeFraction);
+            float x = Mathf.Lerp(rect.x + 2f, rect.xMax - thumbWidth - 2f, normalized);
+            thumbRect = new Rect(x, rect.y + 2f, thumbWidth, rect.height - 4f);
+        }
+
+        DrawDarkFill(thumbRect, MorrowindUiResources.PanelShade);
+        DrawSimpleFrame(thumbRect);
+    }
+
+    public static void DrawHighlightOverlay(Rect rect, bool strong)
+    {
+        Color old = GUI.color;
+        GUI.color = strong ? new Color(0.35f, 0.28f, 0.1f, 0.22f) : new Color(0.25f, 0.2f, 0.08f, 0.14f);
+        GUI.DrawTexture(rect, BaseContent.WhiteTex);
+        GUI.color = MorrowindUiResources.GoldDark;
+        GUI.DrawTexture(new Rect(rect.x, rect.yMax - 1f, rect.width, 1f), BaseContent.WhiteTex);
+        GUI.color = old;
     }
 
     public static bool DrawCloseButton(Rect rect)
@@ -199,6 +311,29 @@ public static class MorrowindWindowSkin
         GUIUtility.RotateAroundPivot(angle, center);
         GUI.DrawTexture(new Rect(center.x - (length / 2f), center.y - (thickness / 2f), length, thickness), BaseContent.WhiteTex);
         GUI.matrix = oldMatrix;
+    }
+
+    private static void DrawTextureOutline(Texture texture, Rect rect, Color color, float offset)
+    {
+        Color old = GUI.color;
+        GUI.color = color;
+
+        foreach (Vector2 direction in new[]
+        {
+            new Vector2(-1f, 0f),
+            new Vector2(1f, 0f),
+            new Vector2(0f, -1f),
+            new Vector2(0f, 1f),
+            new Vector2(-1f, -1f),
+            new Vector2(1f, -1f),
+            new Vector2(-1f, 1f),
+            new Vector2(1f, 1f)
+        })
+        {
+            GUI.DrawTexture(new Rect(rect.x + (direction.x * offset), rect.y + (direction.y * offset), rect.width, rect.height), texture, ScaleMode.ScaleToFit, true);
+        }
+
+        GUI.color = old;
     }
 
     private static void DrawOuterFrame(Rect rect)

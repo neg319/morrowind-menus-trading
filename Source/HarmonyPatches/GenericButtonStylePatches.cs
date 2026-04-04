@@ -27,7 +27,7 @@ public static class GenericButtonStylePatches
 
     public static bool Prefix(MethodBase __originalMethod, object[] __args, ref bool __result)
     {
-        if (Current.ProgramState != ProgramState.Playing || !MorrowindMenusTradingMod.Settings.globalMorrowindWindows)
+        if (Current.ProgramState != ProgramState.Playing || (!MorrowindMenusTradingMod.Settings.globalMorrowindWindows && !TradeDialogStyleState.ShouldStyle))
         {
             return true;
         }
@@ -52,7 +52,9 @@ public static class GenericButtonStylePatches
 
         if (methodName.StartsWith("ButtonImage") && __args.Length > 1 && __args[1] is Texture texture)
         {
-            __result = DrawIconButton(rect, texture);
+            __result = TimeControlsStyleState.Active
+                ? DrawOutlinedIconButton(rect, texture)
+                : DrawIconButton(rect, texture);
             return false;
         }
 
@@ -76,6 +78,16 @@ public static class GenericButtonStylePatches
         bool active = GUI.enabled;
 
         MorrowindWindowSkin.DrawIconButton(rect, icon, mouseOver, active);
+        return clicked && active;
+    }
+
+    private static bool DrawOutlinedIconButton(Rect rect, Texture icon)
+    {
+        bool mouseOver = Mouse.IsOver(rect);
+        bool clicked = Widgets.ButtonInvisible(rect, true);
+        bool active = GUI.enabled;
+
+        MorrowindWindowSkin.DrawOutlinedIconButton(rect, icon, mouseOver, active);
         return clicked && active;
     }
 }

@@ -10,12 +10,12 @@ public static class WindowStylePatches
 {
     public static bool Prefix(Rect rect)
     {
-        if (!MorrowindMenusTradingMod.Settings.globalMorrowindWindows)
+        if (!MorrowindMenusTradingMod.Settings.globalMorrowindWindows && !TradeDialogStyleState.ShouldStyle)
         {
             return true;
         }
 
-        if (rect.width < 180f || rect.height < 110f)
+        if (rect.width < 60f || rect.height < 36f)
         {
             return true;
         }

@@ -19,7 +19,7 @@ public static class CloseButtonStylePatches
 
     public static bool Prefix(object[] __args, ref bool __result)
     {
-        if (!MorrowindMenusTradingMod.Settings.globalMorrowindWindows)
+        if (!MorrowindMenusTradingMod.Settings.globalMorrowindWindows && !TradeDialogStyleState.ShouldStyle)
         {
             return true;
         }
