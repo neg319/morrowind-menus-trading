@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>Morrowind Menus</name>
+  <name>Morrowindish Menus</name>
   <author>Vyberware</author>
   <packageId>vyberware.morrowindmenusandtrading</packageId>
   <supportedVersions>
@@ -13,5 +13,5 @@
       <downloadUrl>https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077</downloadUrl>
     </li>
   </modDependencies>
-  <description>Morrowind Menus replaces the pawn gear tab with a Morrowind inspired layout featuring tabs, organized item categories, equipment slots, and a character stats view. All trading, stockpile, role, and inventory shuffling systems have been removed so normal RimWorld logistics behave as usual.</description>
+  <description>Morrowindish Menus gives RimWorld a darker, more Morrowind flavored interface without changing the core flow of the game. It adds a custom Morrowind style inventory, equipment, and stats screen to the pawn gear tab, applies a black and gold theme across key menus, and includes Dagoth Ur's Mask as a craftable item. It is a little vibe coded, a little hand tuned, and built to keep normal RimWorld logistics and moment to moment play feeling familiar.</description>
 </ModMetaData>

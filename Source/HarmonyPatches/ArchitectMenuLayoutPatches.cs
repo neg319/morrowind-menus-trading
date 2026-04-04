@@ -110,7 +110,7 @@ public static class ArchitectMenuLayoutPatches
         string trimmed = search.Trim();
         return categories.FindAll(category =>
             category?.def?.LabelCap != null &&
-            category.def.LabelCap.IndexOf(trimmed, System.StringComparison.OrdinalIgnoreCase) >= 0);
+            category.def.LabelCap.ToString().IndexOf(trimmed, System.StringComparison.OrdinalIgnoreCase) >= 0);
     }
 
     private static void ClickCategory(MainTabWindow_Architect window, ArchitectCategoryTab category)

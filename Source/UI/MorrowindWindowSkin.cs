@@ -209,8 +209,8 @@ public static class MorrowindWindowSkin
     public static void DrawArchitectCategoryButton(Rect rect, string label, bool active, bool mouseOver)
     {
         Color textColor = active
-            ? Text.CurTextColor
-            : (mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold);
+            ? MorrowindUiResources.Gold
+            : (mouseOver ? MorrowindUiResources.GoldSoft : MorrowindUiResources.Gold);
 
         if (mouseOver)
         {

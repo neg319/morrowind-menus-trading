@@ -1,23 +1,22 @@
-# Morrowind Menus
+# Morrowindish Menus
 
-A RimWorld 1.6 source mod that replaces the pawn gear tab with a Morrowind inspired interface.
+A RimWorld 1.6 source mod that gives the game a darker, more Morrowind flavored menu style.
 
 ## What it does
 
-- Replaces the pawn gear tab with a larger tabbed menu
+- Replaces the pawn gear tab with a custom inventory, equipment, and stats screen
 - Organizes carried items into category tabs
-- Shows equipped gear in its own view
-- Shows a dedicated stats page
-- Applies a Morrowind themed skin to large windows when enabled
+- Applies a black and gold Morrowindish theme to key menus when enabled
+- Adds Dagoth Ur's Mask as a craftable apparel item
 
 ## What it does not do
 
-This stripped down version does not change stockpiles, hauling, pawn trading, inventory sharing, or resource counting. RimWorld logistics stay vanilla.
+This version stays focused on presentation. It does not rewrite RimWorld hauling, stockpiles, trading logic, pawn inventory sharing, or other core logistics systems.
 
 ## Build
 
 Compile with the included GitHub workflow or build `Source/MorrowindMenusTrading.csproj`.
 
+## Notes
 
-## Added content
-- Dagoth Ur's Mask: a craftable headgear item with directional textures and simple-helmet style protection.
+This project is a little vibe coded and then cleaned up by hand, with the goal of feeling stylish in game while still behaving like normal RimWorld.
