@@ -16,6 +16,9 @@
     <altitudeLayer>Item</altitudeLayer>
     <alwaysHaulable>true</alwaysHaulable>
     <tickerType>Never</tickerType>
+    <comps>
+      <li Class="CompProperties_Forbiddable" />
+    </comps>
     <useHitPoints>true</useHitPoints>
     <thingCategories>
       <li>ArmorHeadgear</li>

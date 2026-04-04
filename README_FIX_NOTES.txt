@@ -1,0 +1,1 @@
+This package locks the csproj to a known-safe source file list so old deleted patch files left in a GitHub repo do not compile. It also adds CompProperties_Forbiddable to VB_DagothUrMask so wear actions stop erroring when RimWorld tries to forbid the item on the ground.

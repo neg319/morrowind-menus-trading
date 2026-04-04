@@ -107,31 +107,18 @@ public static class MorrowindWindowSkin
 
     public static void DrawIconButton(Rect rect, Texture icon, bool mouseOver, bool active)
     {
-        Color fill = active
-            ? (mouseOver ? MorrowindUiResources.PanelShadeSoft : MorrowindUiResources.PanelShade)
-            : new Color(MorrowindUiResources.PanelShade.r * 0.75f, MorrowindUiResources.PanelShade.g * 0.75f, MorrowindUiResources.PanelShade.b * 0.75f, MorrowindUiResources.PanelShade.a);
-
-        DrawDarkFill(rect, fill);
-        DrawSimpleFrame(rect);
-
-        if (mouseOver && active)
+        if (icon == null)
         {
-            Color old = GUI.color;
-            GUI.color = MorrowindUiResources.SelectedOverlay;
-            GUI.DrawTexture(rect.ContractedBy(3f), BaseContent.WhiteTex);
-            GUI.color = old;
+            return;
         }
 
-        if (icon != null)
-        {
-            Rect iconRect = rect.ContractedBy(Mathf.Max(3f, Mathf.Min(rect.width, rect.height) * 0.14f));
-            Color old = GUI.color;
-            GUI.color = active
-                ? (mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold)
-                : MorrowindUiResources.GoldDark;
-            GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit, true);
-            GUI.color = old;
-        }
+        Rect iconRect = rect.ContractedBy(Mathf.Max(1f, Mathf.Min(rect.width, rect.height) * 0.08f));
+        Color old = GUI.color;
+        GUI.color = active
+            ? (mouseOver ? MorrowindUiResources.GoldSoft : MorrowindUiResources.Gold)
+            : MorrowindUiResources.GoldDark;
+        GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit, true);
+        GUI.color = old;
     }
 
     public static void DrawOutlinedIconButton(Rect rect, Texture icon, bool mouseOver, bool active)
@@ -142,23 +129,20 @@ public static class MorrowindWindowSkin
         }
 
         Rect iconRect = rect.ContractedBy(Mathf.Max(1f, Mathf.Min(rect.width, rect.height) * 0.08f));
-        float outlineOffset = Mathf.Max(1f, Mathf.Round(Mathf.Min(iconRect.width, iconRect.height) * 0.05f));
-        Color outlineColor = active
-            ? (mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold)
-            : MorrowindUiResources.GoldDark;
-        Color fillColor = active
-            ? new Color(0.03f, 0.03f, 0.03f, 1f)
-            : new Color(0.08f, 0.08f, 0.08f, 0.95f);
-
-        DrawTextureOutline(icon, iconRect, outlineColor, outlineOffset);
-
         Color old = GUI.color;
-        GUI.color = fillColor;
-        GUI.DrawTexture(iconRect.ContractedBy(outlineOffset * 0.8f), icon, ScaleMode.ScaleToFit, true);
+        GUI.color = active
+            ? (mouseOver ? MorrowindUiResources.GoldSoft : MorrowindUiResources.Gold)
+            : MorrowindUiResources.GoldDark;
+        GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit, true);
         GUI.color = old;
     }
 
     public static void DrawCenteredText(Rect rect, string label, Color color)
+    {
+        DrawCenteredText(rect, label, color, GameFont.Small);
+    }
+
+    public static void DrawCenteredText(Rect rect, string label, Color color, GameFont font)
     {
         if (string.IsNullOrEmpty(label))
         {
@@ -170,11 +154,73 @@ public static class MorrowindWindowSkin
         GameFont oldFont = Text.Font;
         GUI.color = color;
         Text.Anchor = TextAnchor.MiddleCenter;
-        Text.Font = GameFont.Small;
+        Text.Font = font;
         Widgets.Label(rect, label);
         Text.Anchor = oldAnchor;
         Text.Font = oldFont;
         GUI.color = oldColor;
+    }
+
+
+    public static void DrawCommandGizmo(Rect rect, Texture icon, string label, string hotkeyLabel, Color iconColor, bool mouseOver, bool disabled)
+    {
+        DrawDarkFill(rect, Color.black);
+
+        if (mouseOver && !disabled)
+        {
+            Color old = GUI.color;
+            GUI.color = new Color(MorrowindUiResources.Gold.r, MorrowindUiResources.Gold.g, MorrowindUiResources.Gold.b, 0.06f);
+            GUI.DrawTexture(rect, BaseContent.WhiteTex);
+            GUI.color = old;
+        }
+
+        if (icon != null)
+        {
+            float iconInsetX = Mathf.Clamp(rect.width * 0.16f, 8f, 14f);
+            Rect iconRect = new Rect(rect.x + iconInsetX, rect.y + 10f, rect.width - (iconInsetX * 2f), 36f);
+            Color old = GUI.color;
+            GUI.color = iconColor;
+            GUI.DrawTexture(iconRect, icon, ScaleMode.ScaleToFit, true);
+            GUI.color = old;
+        }
+
+        if (!string.IsNullOrEmpty(hotkeyLabel))
+        {
+            Rect hotkeyRect = new Rect(rect.x + 4f, rect.y + 2f, Mathf.Min(rect.width * 0.4f, 22f), 18f);
+            DrawCenteredText(hotkeyRect, hotkeyLabel, disabled ? MorrowindUiResources.GoldDark : MorrowindUiResources.Gold, GameFont.Small);
+        }
+
+        if (!string.IsNullOrEmpty(label))
+        {
+            Rect labelRect = new Rect(rect.x + 3f, rect.yMax - 24f, rect.width - 6f, 20f);
+            Color oldColor = GUI.color;
+            TextAnchor oldAnchor = Text.Anchor;
+            GameFont oldFont = Text.Font;
+            GUI.color = disabled ? MorrowindUiResources.GoldDark : MorrowindUiResources.Gold;
+            Text.Anchor = TextAnchor.MiddleCenter;
+            Text.Font = GameFont.Small;
+            Widgets.Label(labelRect, label);
+            Text.Anchor = oldAnchor;
+            Text.Font = oldFont;
+            GUI.color = oldColor;
+        }
+    }
+
+    public static void DrawArchitectCategoryButton(Rect rect, string label, bool active, bool mouseOver)
+    {
+        Color textColor = active
+            ? Text.CurTextColor
+            : (mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold);
+
+        if (mouseOver)
+        {
+            Color old = GUI.color;
+            GUI.color = new Color(MorrowindUiResources.Gold.r, MorrowindUiResources.Gold.g, MorrowindUiResources.Gold.b, 0.08f);
+            GUI.DrawTexture(rect, BaseContent.WhiteTex);
+            GUI.color = old;
+        }
+
+        DrawCenteredText(rect, label, textColor, GameFont.Medium);
     }
 
 

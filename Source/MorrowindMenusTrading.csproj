@@ -7,10 +7,36 @@
     <RootNamespace>MorrowindMenusTrading</RootNamespace>
     <OutputPath>..\1.6\Assemblies\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="MorrowindMenusTradingMod.cs" />
+    <Compile Include="MorrowindMenusTradingSettings.cs" />
+    <Compile Include="Startup.cs" />
+    <Compile Include="DebugTraderVisitUtility.cs" />
+    <Compile Include="HarmonyPatches\PawnGearTabPatches.cs" />
+    <Compile Include="HarmonyPatches\WindowStylePatches.cs" />
+    <Compile Include="HarmonyPatches\MainButtonStylePatches.cs" />
+    <Compile Include="HarmonyPatches\CloseButtonStylePatches.cs" />
+    <Compile Include="HarmonyPatches\TradeDialogPatches.cs" />
+    <Compile Include="HarmonyPatches\GenericButtonStylePatches.cs" />
+    <Compile Include="HarmonyPatches\TradeDialogReskinPatches.cs" />
+    <Compile Include="HarmonyPatches\TimeControlsStylePatches.cs" />
+    <Compile Include="HarmonyPatches\ArchitectMenuLayoutPatches.cs" />
+    <Compile Include="HarmonyPatches\CommandGizmoStylePatches.cs" />
+    <Compile Include="UI\MorrowindUiResources.cs" />
+    <Compile Include="UI\MorrowindWindowSkin.cs" />
+    <Compile Include="UI\MorrowindInventoryState.cs" />
+    <Compile Include="UI\MorrowindGearTabRenderer.cs" />
+    <Compile Include="UI\MorrowindInventoryEntry.cs" />
+    <Compile Include="UI\MorrowindColonyInventoryCache.cs" />
+    <Compile Include="UI\TradeDialogStyleState.cs" />
+    <Compile Include="UI\TimeControlsStyleState.cs" />
   </ItemGroup>
 </Project>

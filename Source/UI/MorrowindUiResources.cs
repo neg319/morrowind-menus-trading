@@ -29,10 +29,10 @@ public static class MorrowindUiResources
     public static readonly Color Gold = new(0.72f, 0.62f, 0.42f);
     public static readonly Color GoldSoft = new(0.53f, 0.44f, 0.27f);
     public static readonly Color GoldDark = new(0.26f, 0.20f, 0.10f);
-    public static readonly Color BackgroundTint = new(0.01f, 0.01f, 0.01f, 0.98f);
-    public static readonly Color PanelShade = new(0.005f, 0.005f, 0.005f, 0.96f);
-    public static readonly Color PanelShadeSoft = new(0.02f, 0.02f, 0.02f, 0.90f);
-    public static readonly Color SlotShade = new(0f, 0f, 0f, 0.88f);
+    public static readonly Color BackgroundTint = new(0f, 0f, 0f, 1f);
+    public static readonly Color PanelShade = new(0f, 0f, 0f, 1f);
+    public static readonly Color PanelShadeSoft = new(0f, 0f, 0f, 1f);
+    public static readonly Color SlotShade = new(0f, 0f, 0f, 1f);
     public static readonly Color SlotBorderDark = new(0.07f, 0.06f, 0.05f, 1f);
     public static readonly Color SlotBorderLight = new(0.15f, 0.13f, 0.10f, 1f);
     public static readonly Color SelectedOverlay = new(0.96f, 0.83f, 0.34f, 0.16f);
