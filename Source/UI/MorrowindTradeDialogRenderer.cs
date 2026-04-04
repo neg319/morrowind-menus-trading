@@ -15,10 +15,9 @@ public static class MorrowindTradeDialogRenderer
     private const float TitleHeight = 30f;
     private const float TopBarHeight = 54f;
     private const float FooterHeight = 54f;
-    private const float LeftPaneWidth = 250f;
-    private const float RightPaneBottomHeight = 86f;
-    private const float TransferColumnWidth = 86f;
     private const float CategoryTabsHeight = 26f;
+    private const float ActionStripHeight = 82f;
+    private const float TransferColumnWidth = 86f;
     private const float SlotSize = 54f;
     private const float SlotGap = 5f;
 
@@ -51,13 +50,8 @@ public static class MorrowindTradeDialogRenderer
 
             DrawTitleBar(titleRect);
             DrawTopBar(dialog, topBarRect, state);
-
-            Rect leftRect = new(contentRect.x, contentRect.y, LeftPaneWidth, contentRect.height);
-            Rect rightRect = new(leftRect.xMax + 10f, contentRect.y, contentRect.width - LeftPaneWidth - 10f, contentRect.height);
-
-            DrawSummaryPane(leftRect, currencyTradeable, tradeables);
-            DrawTradePane(dialog, rightRect, tradeables, selected, state);
-            DrawFooter(dialog, footerRect, tradeables);
+            DrawTradePane(contentRect, tradeables, selected, state);
+            DrawFooter(dialog, footerRect, currencyTradeable, tradeables);
         }
         finally
         {
@@ -75,47 +69,47 @@ public static class MorrowindTradeDialogRenderer
     private static void DrawTopBar(Dialog_Trade dialog, Rect rect, TradeUiState state)
     {
         MorrowindWindowSkin.DrawPanel(rect, inset: 4f);
-        Rect leftRect = new(rect.x + 8f, rect.y + 6f, rect.width * 0.54f, rect.height - 12f);
-        Rect rightRect = new(leftRect.xMax + 8f, rect.y + 6f, rect.xMax - leftRect.xMax - 16f, rect.height - 12f);
 
-        string traderName = TradeSession.trader?.TraderName ?? "Trader";
-        string traderKind = TradeSession.trader?.TraderKind?.LabelCap ?? string.Empty;
+        Rect leftRect = new(rect.x + 8f, rect.y + 6f, rect.width * 0.34f, rect.height - 12f);
+        Rect centerRect = new(leftRect.xMax + 8f, rect.y + 4f, rect.width * 0.28f, rect.height - 8f);
+        Rect rightRect = new(centerRect.xMax + 8f, rect.y + 8f, rect.xMax - centerRect.xMax - 16f, rect.height - 16f);
+
         string negotiatorInfo = TradeSession.playerNegotiator == null
             ? string.Empty
-            : $"Negotiator: {TradeSession.playerNegotiator.Name?.ToStringShort ?? TradeSession.playerNegotiator.LabelShort}  ({TradeSession.playerNegotiator.GetStatValue(StatDefOf.TradePriceImprovement).ToStringPercent()})";
+            : $"Negotiator: {TradeSession.playerNegotiator.Name?.ToStringShort ?? TradeSession.playerNegotiator.LabelShort} ({TradeSession.playerNegotiator.GetStatValue(StatDefOf.TradePriceImprovement).ToStringPercent()})";
+        string hint = TradeSession.giftMode
+            ? "Items in Purchased become gifts."
+            : "Double click an icon to add one.";
 
         DrawLabelLeft(new Rect(leftRect.x, leftRect.y, leftRect.width, 18f), "New Arrivals", MorrowindUiResources.TextPrimary);
         DrawLabelLeft(new Rect(leftRect.x, leftRect.y + 18f, leftRect.width, 16f), negotiatorInfo, MorrowindUiResources.TextMuted, GameFont.Tiny);
-        DrawLabelCentered(new Rect(rect.center.x - 90f, rect.y + 4f, 180f, rect.height - 8f), $"{traderName}\n{traderKind}", MorrowindUiResources.TextPrimary);
+        DrawLabelLeft(new Rect(leftRect.x, leftRect.y + 32f, leftRect.width, 14f), hint, MorrowindUiResources.TextMuted, GameFont.Tiny);
 
-        float buttonGap = 6f;
-        float buttonWidth = 86f;
-        float cursorX = rightRect.xMax;
+        string traderName = TradeSession.trader?.TraderName ?? "Trader";
+        string traderKind = TradeSession.trader?.TraderKind?.LabelCap ?? string.Empty;
+        DrawLabelCentered(new Rect(centerRect.x, centerRect.y, centerRect.width, 22f), traderName, MorrowindUiResources.TextPrimary);
+        DrawLabelCentered(new Rect(centerRect.x, centerRect.y + 18f, centerRect.width, 18f), traderKind, MorrowindUiResources.TextMuted, GameFont.Tiny);
 
-        Rect sellableRect = default;
-        Rect modeRect = default;
-        Rect sortRect = default;
+        float gap = 6f;
+        float cursorX = rightRect.x;
+        Rect sort1Rect = new(cursorX, rightRect.y, 92f, 24f);
+        cursorX += sort1Rect.width + gap;
+        Rect sort2Rect = new(cursorX, rightRect.y, 106f, 24f);
+        cursorX += sort2Rect.width + gap;
+        Rect modeRect = new(cursorX, rightRect.y, 86f, 24f);
+        cursorX += modeRect.width + gap;
+        Rect sellableRect = new(cursorX, rightRect.y, 84f, 24f);
 
-        if (TradeSession.trader != null)
+        string primarySort = (GetSorter1(dialog) ?? TransferableSorterDefOf.Category)?.LabelCap ?? "Category";
+        if (DrawButton(sort1Rect, primarySort))
         {
-            cursorX -= buttonWidth;
-            sellableRect = new Rect(cursorX, rightRect.y + 10f, buttonWidth, 24f);
-            cursorX -= buttonGap;
+            OpenSorterMenu(dialog, primary: true);
         }
 
-        if (CanToggleGiftMode(dialog))
+        string secondarySort = (GetSorter2(dialog) ?? TransferableSorterDefOf.MarketValue)?.LabelCap ?? "Market value";
+        if (DrawButton(sort2Rect, secondarySort))
         {
-            cursorX -= buttonWidth;
-            modeRect = new Rect(cursorX, rightRect.y + 10f, buttonWidth, 24f);
-            cursorX -= buttonGap;
-        }
-
-        cursorX -= buttonWidth;
-        sortRect = new Rect(cursorX, rightRect.y + 10f, buttonWidth, 24f);
-
-        if (TradeSession.trader != null && DrawButton(sellableRect, state.sellableOnly ? "All items" : "Sellable"))
-        {
-            state.sellableOnly = !state.sellableOnly;
+            OpenSorterMenu(dialog, primary: false);
         }
 
         if (CanToggleGiftMode(dialog))
@@ -128,69 +122,23 @@ public static class MorrowindTradeDialogRenderer
             }
         }
 
-        string sortLabel = (GetSorter1(dialog) ?? TransferableSorterDefOf.Category)?.LabelCap ?? "Category";
-        if (DrawButton(sortRect, sortLabel))
+        if (TradeSession.trader != null && DrawButton(sellableRect, state.sellableOnly ? "All Items" : "Sellable"))
         {
-            List<FloatMenuOption> options = DefDatabase<TransferableSorterDef>.AllDefsListForReading
-                .OrderBy(def => def.LabelCap)
-                .Select(def => new FloatMenuOption(def.LabelCap, () =>
-                {
-                    SetSorter(dialog, true, def);
-                    if (GetSorter2(dialog) == null)
-                    {
-                        SetSorter(dialog, false, TransferableSorterDefOf.MarketValue);
-                    }
-                }))
-                .ToList();
-            Find.WindowStack.Add(new FloatMenu(options));
+            state.sellableOnly = !state.sellableOnly;
+            state.gridScroll = Vector2.zero;
         }
     }
 
-    private static void DrawSummaryPane(Rect rect, Tradeable currencyTradeable, List<Tradeable> tradeables)
+    private static void OpenSorterMenu(Dialog_Trade dialog, bool primary)
     {
-        MorrowindWindowSkin.DrawPanel(rect);
-        Rect inner = rect.ContractedBy(8f);
-        Rect headerRect = new(inner.x, inner.y, inner.width, 24f);
-        DrawLabelCentered(headerRect, "Trade Summary", MorrowindUiResources.TextPrimary);
-
-        float playerFunds = currencyTradeable?.CountHeldBy(Transactor.Colony) ?? 0f;
-        float traderFunds = currencyTradeable?.CountHeldBy(Transactor.Trader) ?? 0f;
-        string currencyLabel = GetCurrencyLabel(currencyTradeable).CapitalizeFirst();
-        int soldCount = tradeables.Sum(GetSoldCount);
-        int boughtCount = tradeables.Sum(GetBoughtCount);
-        float totalSold = tradeables.Where(trad => trad.ActionToDo == TradeAction.PlayerSells).Sum(trad => trad.CurTotalCurrencyCostForDestination);
-        float totalBought = tradeables.Where(trad => trad.ActionToDo == TradeAction.PlayerBuys).Sum(trad => trad.CurTotalCurrencyCostForSource);
-        float balance = totalSold - totalBought;
-
-        float y = headerRect.yMax + 8f;
-        y = DrawSummaryLine(inner, y, $"Your {currencyLabel}", FormatCurrency(playerFunds));
-        y = DrawSummaryLine(inner, y, $"Seller {currencyLabel}", FormatCurrency(traderFunds));
-        y += 8f;
-        y = DrawSummaryLine(inner, y, "Stacks sold", soldCount.ToStringCached());
-        y = DrawSummaryLine(inner, y, "Stacks bought", boughtCount.ToStringCached());
-        y += 8f;
-        y = DrawSummaryLine(inner, y, "Total sold", FormatCurrency(totalSold));
-        y = DrawSummaryLine(inner, y, "Total bought", FormatCurrency(totalBought));
-        y += 8f;
-        y = DrawSummaryLine(inner, y, "Balance", FormatSignedCurrency(balance), MorrowindUiResources.TextPrimary);
-
-        if (TradeSession.giftMode && TradeSession.trader?.Faction != null)
-        {
-            y += 8f;
-            y = DrawSummaryLine(inner, y, "Goodwill", GetGiftGoodwillChange().ToStringWithSign(), MorrowindUiResources.TextPrimary);
-        }
-
-        Rect noteRect = new(inner.x, inner.yMax - 66f, inner.width, 60f);
-        MorrowindWindowSkin.DrawFlatPanel(noteRect, MorrowindUiResources.PanelShade);
-        DrawWrappedLabel(noteRect.ContractedBy(6f),
-            TradeSession.giftMode
-                ? "Gift mode is active. Items in the Purchased column become a gift, and goodwill appears above."
-                : "Select an item from the grid, then use the Sold and Purchased columns to build the deal.",
-            MorrowindUiResources.TextMuted,
-            GameFont.Tiny);
+        List<FloatMenuOption> options = DefDatabase<TransferableSorterDef>.AllDefsListForReading
+            .OrderBy(def => def.LabelCap)
+            .Select(def => new FloatMenuOption(def.LabelCap, () => SetSorter(dialog, primary, def)))
+            .ToList();
+        Find.WindowStack.Add(new FloatMenu(options));
     }
 
-    private static void DrawTradePane(Dialog_Trade dialog, Rect rect, List<Tradeable> tradeables, Tradeable selected, TradeUiState state)
+    private static void DrawTradePane(Rect rect, List<Tradeable> tradeables, Tradeable selected, TradeUiState state)
     {
         MorrowindWindowSkin.DrawPanel(rect);
         Rect inner = rect.ContractedBy(8f);
@@ -198,12 +146,15 @@ public static class MorrowindTradeDialogRenderer
         Rect tabsRect = new(inner.x, inner.y, inner.width, CategoryTabsHeight);
         DrawCategoryTabs(tabsRect, state);
 
-        Rect bodyRect = new(inner.x, tabsRect.yMax + 6f, inner.width, inner.height - CategoryTabsHeight - RightPaneBottomHeight - 12f);
-        Rect detailRect = new(inner.x, bodyRect.yMax + 6f, inner.width, RightPaneBottomHeight);
+        Rect totalsRect = new(inner.x, tabsRect.yMax + 4f, inner.width, 18f);
+        DrawPaneTotals(totalsRect, tradeables);
+
+        Rect bodyRect = new(inner.x, totalsRect.yMax + 4f, inner.width, inner.height - CategoryTabsHeight - 18f - ActionStripHeight - 14f);
+        Rect stripRect = new(inner.x, bodyRect.yMax + 6f, inner.width, ActionStripHeight);
 
         Rect soldRect = new(bodyRect.x, bodyRect.y, TransferColumnWidth, bodyRect.height);
+        Rect boughtRect = new(bodyRect.xMax - TransferColumnWidth, bodyRect.y, TransferColumnWidth, bodyRect.height);
         Rect gridRect = new(soldRect.xMax + 8f, bodyRect.y, bodyRect.width - (TransferColumnWidth * 2f) - 16f, bodyRect.height);
-        Rect boughtRect = new(gridRect.xMax + 8f, bodyRect.y, TransferColumnWidth, bodyRect.height);
 
         List<Tradeable> soldItems = tradeables.Where(trad => GetSoldCount(trad) > 0).ToList();
         List<Tradeable> boughtItems = tradeables.Where(trad => GetBoughtCount(trad) > 0).ToList();
@@ -211,7 +162,17 @@ public static class MorrowindTradeDialogRenderer
         DrawTransferColumn(soldRect, "Sold", soldItems, selected, state, isSoldColumn: true);
         DrawTradeGrid(gridRect, tradeables, selected, state);
         DrawTransferColumn(boughtRect, "Purchased", boughtItems, selected, state, isSoldColumn: false);
-        DrawSelectionPanel(detailRect, selected);
+        DrawSelectionPanel(stripRect, selected);
+    }
+
+    private static void DrawPaneTotals(Rect rect, List<Tradeable> tradeables)
+    {
+        float totalSold = tradeables.Where(trad => trad.ActionToDo == TradeAction.PlayerSells).Sum(trad => trad.CurTotalCurrencyCostForDestination);
+        float totalBought = tradeables.Where(trad => trad.ActionToDo == TradeAction.PlayerBuys).Sum(trad => trad.CurTotalCurrencyCostForSource);
+        string left = $"Total Sold {FormatCurrency(totalSold)}";
+        string right = $"Total Bought {FormatCurrency(totalBought)}";
+        DrawLabelLeft(new Rect(rect.x + 2f, rect.y, rect.width * 0.5f, rect.height), left, MorrowindUiResources.TextMuted, GameFont.Tiny);
+        DrawLabelRight(new Rect(rect.x + rect.width * 0.5f, rect.y, rect.width * 0.5f - 2f, rect.height), right, MorrowindUiResources.TextMuted, GameFont.Tiny);
     }
 
     private static void DrawCategoryTabs(Rect rect, TradeUiState state)
@@ -260,13 +221,14 @@ public static class MorrowindTradeDialogRenderer
 
     private static void DrawTransferColumn(Rect rect, string title, List<Tradeable> items, Tradeable selected, TradeUiState state, bool isSoldColumn)
     {
-        MorrowindWindowSkin.DrawFlatPanel(rect, MorrowindUiResources.PanelShade);
-        DrawLabelCentered(new Rect(rect.x, rect.y + 2f, rect.width, 20f), title, MorrowindUiResources.TextPrimary, GameFont.Tiny);
+        MorrowindWindowSkin.DrawPanel(rect, inset: 3f);
+        DrawLabelCentered(new Rect(rect.x + 2f, rect.y + 2f, rect.width - 4f, 18f), title, MorrowindUiResources.TextPrimary, GameFont.Tiny);
 
-        Rect listRect = new(rect.x + 5f, rect.y + 24f, rect.width - 10f, rect.height - 30f);
+        Rect listRect = new(rect.x + 6f, rect.y + 24f, rect.width - 12f, rect.height - 30f);
         Vector2 scroll = isSoldColumn ? state.soldScroll : state.boughtScroll;
-        float viewHeight = Mathf.Max(listRect.height, items.Count * (SlotSize + 6f) + 4f);
-        Rect viewRect = new(0f, 0f, listRect.width - 16f, viewHeight);
+        float rowHeight = SlotSize + 4f;
+        float viewHeight = Mathf.Max(listRect.height, items.Count * rowHeight + 2f);
+        Rect viewRect = new(0f, 0f, listRect.width - 14f, viewHeight);
 
         Widgets.BeginScrollView(listRect, ref scroll, viewRect);
         float y = 0f;
@@ -282,26 +244,17 @@ public static class MorrowindTradeDialogRenderer
             Rect slotRect = new((viewRect.width - SlotSize) * 0.5f, y, SlotSize, SlotSize);
             bool isSelected = selected != null && MakeTradeKey(selected) == MakeTradeKey(trad);
             MorrowindWindowSkin.DrawSlot(slotRect, isSelected);
-            if (isSoldColumn)
-            {
-                MorrowindWindowSkin.DrawEquippedOutline(slotRect);
-            }
-            DrawThingIcon(slotRect.ContractedBy(5f), thing);
-            DrawCornerCount(slotRect, isSoldColumn ? GetSoldCount(trad).ToStringCached() : GetBoughtCount(trad).ToStringCached(), topRight: false);
+            DrawThingIcon(slotRect.ContractedBy(4f), thing);
+            DrawStackCount(slotRect, isSoldColumn ? GetSoldCount(trad) : GetBoughtCount(trad));
             TooltipHandler.TipRegion(slotRect, BuildTradeableTooltip(trad));
             if (Widgets.ButtonInvisible(slotRect))
             {
                 state.selectedKey = MakeTradeKey(trad);
             }
 
-            y += SlotSize + 6f;
+            y += rowHeight;
         }
         Widgets.EndScrollView();
-
-        if (items.Count == 0)
-        {
-            DrawLabelCentered(new Rect(rect.x + 6f, rect.center.y - 10f, rect.width - 12f, 20f), "Empty", MorrowindUiResources.TextMuted, GameFont.Tiny);
-        }
 
         if (isSoldColumn)
         {
@@ -311,12 +264,18 @@ public static class MorrowindTradeDialogRenderer
         {
             state.boughtScroll = scroll;
         }
+
+        if (items.Count == 0)
+        {
+            DrawLabelCentered(new Rect(rect.x + 4f, rect.center.y - 8f, rect.width - 8f, 18f), "Empty", MorrowindUiResources.TextMuted, GameFont.Tiny);
+        }
     }
 
     private static void DrawTradeGrid(Rect rect, List<Tradeable> tradeables, Tradeable selected, TradeUiState state)
     {
-        MorrowindWindowSkin.DrawFlatPanel(rect, MorrowindUiResources.PanelShadeSoft);
-        Rect inner = rect.ContractedBy(6f);
+        MorrowindWindowSkin.DrawPanel(rect, inset: 3f);
+        DrawGridBackground(rect.ContractedBy(4f));
+        Rect inner = rect.ContractedBy(8f);
 
         int columns = Mathf.Max(1, Mathf.FloorToInt((inner.width - 4f) / (SlotSize + SlotGap)));
         int rows = Mathf.Max(1, Mathf.CeilToInt(tradeables.Count / (float)columns));
@@ -341,6 +300,7 @@ public static class MorrowindTradeDialogRenderer
             DrawThingIcon(cell.ContractedBy(4f), thing);
             DrawStackCount(cell, thing.stackCount);
             DrawHeldCounts(cell, trad);
+            DrawTradeMarks(cell, trad);
             TooltipHandler.TipRegion(cell, BuildTradeableTooltip(trad));
 
             if (Widgets.ButtonInvisible(cell))
@@ -355,28 +315,63 @@ public static class MorrowindTradeDialogRenderer
         Widgets.EndScrollView();
     }
 
+    private static void DrawGridBackground(Rect rect)
+    {
+        Color oldColor = GUI.color;
+        GUI.color = new Color(1f, 1f, 1f, 0.13f);
+        GUI.DrawTexture(rect, MorrowindUiResources.Background, ScaleMode.StretchToFill, true);
+        GUI.color = oldColor;
+    }
+
+    private static void DrawTradeMarks(Rect rect, Tradeable trad)
+    {
+        int sold = GetSoldCount(trad);
+        int bought = GetBoughtCount(trad);
+        if (sold > 0)
+        {
+            DrawBadge(new Rect(rect.x + 2f, rect.yMax - 15f, rect.width * 0.45f, 12f), $"S{sold}");
+        }
+        if (bought > 0)
+        {
+            DrawBadge(new Rect(rect.x + rect.width * 0.52f, rect.yMax - 15f, rect.width * 0.43f, 12f), $"P{bought}");
+        }
+    }
+
+    private static void DrawBadge(Rect rect, string text)
+    {
+        Color oldColor = GUI.color;
+        GUI.color = new Color(0f, 0f, 0f, 0.8f);
+        GUI.DrawTexture(rect, BaseContent.WhiteTex);
+        GUI.color = oldColor;
+        DrawLabelCentered(rect, text, MorrowindUiResources.TextPrimary, GameFont.Tiny);
+    }
+
     private static void DrawSelectionPanel(Rect rect, Tradeable selected)
     {
         MorrowindWindowSkin.DrawPanel(rect, inset: 3f);
         if (selected?.AnyThing == null)
         {
-            DrawLabelCentered(rect, "Select an item", MorrowindUiResources.TextMuted, GameFont.Small);
+            DrawLabelCentered(rect, "Select an item from the grid", MorrowindUiResources.TextMuted, GameFont.Small);
             return;
         }
 
         Thing thing = selected.AnyThing;
         Rect inner = rect.ContractedBy(8f);
-        Rect iconRect = new(inner.x, inner.y + 4f, 56f, 56f);
+        Rect iconRect = new(inner.x + 2f, inner.y + 8f, 54f, 54f);
         MorrowindWindowSkin.DrawSlot(iconRect, false);
-        DrawThingIcon(iconRect.ContractedBy(5f), thing);
+        DrawThingIcon(iconRect.ContractedBy(4f), thing);
 
-        Rect textRect = new(iconRect.xMax + 8f, inner.y, inner.width * 0.34f, inner.height);
-        DrawLabelLeft(new Rect(textRect.x, textRect.y + 2f, textRect.width, 20f), thing.LabelCap, MorrowindUiResources.TextPrimary);
-        DrawLabelLeft(new Rect(textRect.x, textRect.y + 22f, textRect.width, 16f), $"Yours: {selected.CountHeldBy(Transactor.Colony)}   Trader: {selected.CountHeldBy(Transactor.Trader)}", MorrowindUiResources.TextMuted, GameFont.Tiny);
-        DrawLabelLeft(new Rect(textRect.x, textRect.y + 38f, textRect.width, 16f), $"Buy {FormatCurrency(selected.GetPriceFor(TradeAction.PlayerBuys))}   Sell {FormatCurrency(selected.GetPriceFor(TradeAction.PlayerSells))}", MorrowindUiResources.TextMuted, GameFont.Tiny);
+        float textWidth = Mathf.Max(180f, inner.width * 0.34f);
+        Rect nameRect = new(iconRect.xMax + 8f, inner.y + 4f, textWidth, 22f);
+        Rect infoRect = new(nameRect.x, nameRect.yMax + 2f, textWidth, 18f);
+        Rect priceRect = new(nameRect.x, infoRect.yMax + 2f, textWidth, 18f);
+        DrawLabelLeft(nameRect, thing.LabelCap, MorrowindUiResources.TextPrimary);
+        DrawLabelLeft(infoRect, $"Yours: {selected.CountHeldBy(Transactor.Colony)}   Trader: {selected.CountHeldBy(Transactor.Trader)}", MorrowindUiResources.TextMuted, GameFont.Tiny);
+        DrawLabelLeft(priceRect, $"Buy {FormatCurrency(selected.GetPriceFor(TradeAction.PlayerBuys))}   Sell {FormatCurrency(selected.GetPriceFor(TradeAction.PlayerSells))}", MorrowindUiResources.TextMuted, GameFont.Tiny);
 
-        Rect soldGroupRect = new(inner.x + inner.width * 0.43f, inner.y + 4f, inner.width * 0.25f, 54f);
-        Rect boughtGroupRect = new(soldGroupRect.xMax + 8f, inner.y + 4f, inner.width * 0.25f, 54f);
+        float groupWidth = 138f;
+        Rect soldGroupRect = new(inner.xMax - (groupWidth * 2f) - 12f, inner.y + 6f, groupWidth, 58f);
+        Rect boughtGroupRect = new(soldGroupRect.xMax + 8f, inner.y + 6f, groupWidth, 58f);
         DrawAdjustGroup(soldGroupRect, selected, TradeAction.PlayerSells, "Sold", selected.CountHeldBy(Transactor.Colony), GetSoldCount(selected), true);
         DrawAdjustGroup(boughtGroupRect, selected, TradeAction.PlayerBuys, "Purchased", selected.CountHeldBy(Transactor.Trader), GetBoughtCount(selected), selected.TraderWillTrade || TradeSession.giftMode);
     }
@@ -389,7 +384,7 @@ public static class MorrowindTradeDialogRenderer
         float allWidth = 28f;
         float buttonWidth = 18f;
         float countWidth = Mathf.Max(28f, rect.width - allWidth - buttonWidth - buttonWidth - 8f);
-        Rect allRect = new(rect.x + 2f, rect.y + 22f, allWidth, 22f);
+        Rect allRect = new(rect.x + 2f, rect.y + 24f, allWidth, 22f);
         Rect minusRect = new(allRect.xMax + 2f, allRect.y, buttonWidth, 22f);
         Rect countRect = new(minusRect.xMax + 2f, allRect.y, countWidth, 22f);
         Rect plusRect = new(countRect.xMax + 2f, allRect.y, buttonWidth, 22f);
@@ -418,7 +413,7 @@ public static class MorrowindTradeDialogRenderer
         }
     }
 
-    private static void DrawFooter(Dialog_Trade dialog, Rect rect, List<Tradeable> tradeables)
+    private static void DrawFooter(Dialog_Trade dialog, Rect rect, Tradeable currencyTradeable, List<Tradeable> tradeables)
     {
         TradeSession.deal.UpdateCurrencyCount();
         MorrowindWindowSkin.DrawPanel(rect, inset: 3f);
@@ -426,14 +421,30 @@ public static class MorrowindTradeDialogRenderer
         float totalSold = tradeables.Where(trad => trad.ActionToDo == TradeAction.PlayerSells).Sum(trad => trad.CurTotalCurrencyCostForDestination);
         float totalBought = tradeables.Where(trad => trad.ActionToDo == TradeAction.PlayerBuys).Sum(trad => trad.CurTotalCurrencyCostForSource);
         float balance = totalSold - totalBought;
-        string summary = $"Sold {FormatCurrency(totalSold)}    Bought {FormatCurrency(totalBought)}    Balance {FormatSignedCurrency(balance)}";
-        DrawLabelLeft(new Rect(rect.x + 10f, rect.y + 8f, rect.width * 0.52f, 32f), summary, MorrowindUiResources.TextPrimary);
+        float playerFunds = currencyTradeable?.CountHeldBy(Transactor.Colony) ?? 0f;
+        float traderFunds = currencyTradeable?.CountHeldBy(Transactor.Trader) ?? 0f;
+        string currencyLabel = GetCurrencyLabel(currencyTradeable).CapitalizeFirst();
+
+        Rect leftRect = new(rect.x + 10f, rect.y + 6f, rect.width * 0.38f, rect.height - 12f);
+        Rect centerRect = new(leftRect.xMax + 10f, rect.y + 6f, rect.width * 0.22f, rect.height - 12f);
+        Rect rightRect = new(centerRect.xMax + 10f, rect.y + 10f, rect.xMax - centerRect.xMax - 20f, rect.height - 20f);
+
+        DrawLabelLeft(new Rect(leftRect.x, leftRect.y, leftRect.width, 16f), $"Total Sold {FormatCurrency(totalSold)}", MorrowindUiResources.TextPrimary, GameFont.Tiny);
+        DrawLabelLeft(new Rect(leftRect.x, leftRect.y + 15f, leftRect.width, 16f), $"Total Bought {FormatCurrency(totalBought)}", MorrowindUiResources.TextPrimary, GameFont.Tiny);
+        DrawLabelLeft(new Rect(leftRect.x, leftRect.y + 30f, leftRect.width, 16f), $"Balance {FormatSignedCurrency(balance)}", MorrowindUiResources.TextPrimary, GameFont.Tiny);
+
+        DrawLabelLeft(new Rect(centerRect.x, centerRect.y, centerRect.width, 16f), $"Your {currencyLabel} {FormatCurrency(playerFunds)}", MorrowindUiResources.TextPrimary, GameFont.Tiny);
+        DrawLabelLeft(new Rect(centerRect.x, centerRect.y + 15f, centerRect.width, 16f), $"Seller {currencyLabel} {FormatCurrency(traderFunds)}", MorrowindUiResources.TextPrimary, GameFont.Tiny);
+        if (TradeSession.giftMode && TradeSession.trader?.Faction != null)
+        {
+            DrawLabelLeft(new Rect(centerRect.x, centerRect.y + 30f, centerRect.width, 16f), $"Goodwill {GetGiftGoodwillChange().ToStringWithSign()}", MorrowindUiResources.TextPrimary, GameFont.Tiny);
+        }
 
         float buttonWidth = 92f;
         float gap = 6f;
-        Rect cancelRect = new(rect.xMax - buttonWidth, rect.y + 11f, buttonWidth, 28f);
-        Rect resetRect = new(cancelRect.x - gap - buttonWidth, cancelRect.y, buttonWidth, cancelRect.height);
-        Rect acceptRect = new(resetRect.x - gap - 126f, cancelRect.y, 126f, cancelRect.height);
+        Rect cancelRect = new(rightRect.xMax - buttonWidth, rightRect.y, buttonWidth, 28f);
+        Rect resetRect = new(cancelRect.x - gap - buttonWidth, rightRect.y, buttonWidth, 28f);
+        Rect acceptRect = new(resetRect.x - gap - 126f, rightRect.y, 126f, 28f);
 
         if (DrawButton(cancelRect, "Cancel"))
         {
@@ -478,14 +489,6 @@ public static class MorrowindTradeDialogRenderer
 
             Event.current?.Use();
         }
-    }
-
-    private static float DrawSummaryLine(Rect inner, float y, string left, string right, Color? valueColor = null)
-    {
-        Rect row = new(inner.x, y, inner.width, 20f);
-        DrawLabelLeft(new Rect(row.x, row.y, row.width * 0.58f, row.height), left, MorrowindUiResources.TextMuted);
-        DrawLabelRight(new Rect(row.x + row.width * 0.58f, row.y, row.width * 0.42f, row.height), right, valueColor ?? MorrowindUiResources.TextPrimary);
-        return y + 21f;
     }
 
     private static bool DrawButton(Rect rect, string label)
@@ -683,23 +686,6 @@ public static class MorrowindTradeDialogRenderer
         GUI.color = oldColor;
     }
 
-    private static void DrawWrappedLabel(Rect rect, string text, Color color, GameFont font)
-    {
-        GameFont oldFont = Text.Font;
-        TextAnchor oldAnchor = Text.Anchor;
-        Color oldColor = GUI.color;
-        bool oldWrap = Text.WordWrap;
-        Text.Font = font;
-        Text.Anchor = TextAnchor.UpperLeft;
-        Text.WordWrap = true;
-        GUI.color = color;
-        Widgets.Label(rect, text);
-        Text.WordWrap = oldWrap;
-        Text.Anchor = oldAnchor;
-        Text.Font = oldFont;
-        GUI.color = oldColor;
-    }
-
     private static List<Tradeable> BuildTradeables(Dialog_Trade dialog, TradeUiState state)
     {
         TransferableSorterDef sorter1 = GetSorter1(dialog) ?? TransferableSorterDefOf.Category;
@@ -740,7 +726,7 @@ public static class MorrowindTradeDialogRenderer
         {
             TradeGridCategory.Weapon => def.IsWeapon,
             TradeGridCategory.Apparel => thing is Apparel,
-            TradeGridCategory.Magic => def.IsMedicine || (def.ingestible != null && def.ingestible.drugCategory != DrugCategory.None),
+            TradeGridCategory.Magic => def.IsMedicine || (def.ingestible != null && def.ingestible.drugCategory != DrugCategory.None) || (def.thingCategories != null && def.thingCategories.Any(categoryDef => categoryDef.defName.Contains("Psy", StringComparison.OrdinalIgnoreCase) || categoryDef.defName.Contains("Book", StringComparison.OrdinalIgnoreCase))),
             TradeGridCategory.Misc => !def.IsWeapon && thing is not Apparel && !def.IsMedicine && (def.ingestible == null || def.ingestible.drugCategory == DrugCategory.None),
             _ => true,
         };
