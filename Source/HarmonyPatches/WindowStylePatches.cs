@@ -15,7 +15,7 @@ public static class WindowStylePatches
             return true;
         }
 
-        if (rect.width < 60f || rect.height < 36f)
+        if (rect.width < 180f || rect.height < 110f)
         {
             return true;
         }

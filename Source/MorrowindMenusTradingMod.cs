@@ -23,8 +23,6 @@ public sealed class MorrowindMenusTradingMod : Mod
     public override void DoSettingsWindowContents(Rect inRect)
     {
         Rect viewRect = new Rect(0f, 0f, inRect.width - 16f, Prefs.DevMode ? 640f : 520f);
-        Color oldColor = GUI.color;
-        GUI.color = MorrowindUiResources.GoldSoft;
         Widgets.BeginScrollView(inRect, ref settingsScroll, viewRect);
 
         var listing = new Listing_Standard();
@@ -71,7 +69,6 @@ public sealed class MorrowindMenusTradingMod : Mod
         listing.Label("MIL_SettingsBlurb".Translate());
         listing.End();
         Widgets.EndScrollView();
-        GUI.color = oldColor;
     }
 
     private void DrawQuickTabSettings(Listing_Standard listing)

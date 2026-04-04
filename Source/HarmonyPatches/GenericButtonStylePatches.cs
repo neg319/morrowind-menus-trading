@@ -15,6 +15,11 @@ public static class GenericButtonStylePatches
         BindingFlags flags = BindingFlags.Public | BindingFlags.Static;
         foreach (MethodInfo method in typeof(Widgets).GetMethods(flags))
         {
+            if (method.ReturnType != typeof(bool))
+            {
+                continue;
+            }
+
             if (method.Name == nameof(Widgets.ButtonText) ||
                 method.Name == "ButtonTextSubtle" ||
                 method.Name == nameof(Widgets.ButtonImage) ||
