@@ -40,29 +40,38 @@ public static class ArchitectMenuLayoutPatches
         List<ArchitectCategoryTab> visibleCategories = GetFilteredCategories(categories, categorySearch);
 
         const float outerPadding = 6f;
-        const float buttonGap = 4f;
-        const float buttonHeight = 42f;
         const float searchHeight = 36f;
         const float headerGap = 8f;
-        const float panelBottomGap = 10f;
+        const float searchGap = 8f;
+        const float minButtonHeight = 28f;
+        const float preferredButtonHeight = 42f;
+        const float preferredButtonGap = 4f;
+        const float minimumTopPanelHeight = 48f;
 
-        float buttonsHeight = (visibleCategories.Count * buttonHeight) + (Mathf.Max(0, visibleCategories.Count - 1) * buttonGap);
-        float minimumTopPanelHeight = 120f;
-        float desiredTopPanelHeight = inRect.height * 0.40f;
-        float remaining = inRect.height - buttonsHeight - searchHeight - (outerPadding * 2f) - headerGap - panelBottomGap;
-        float topPanelHeight = Mathf.Max(minimumTopPanelHeight, Mathf.Min(desiredTopPanelHeight, remaining));
+        float topPanelHeight = Mathf.Clamp(inRect.height * 0.12f, minimumTopPanelHeight, 72f);
+        float buttonWidth = inRect.width - (outerPadding * 2f);
+        float buttonsStartY = inRect.y + outerPadding + topPanelHeight + headerGap;
+        float searchY = inRect.yMax - outerPadding - searchHeight;
+        float availableButtonsHeight = Mathf.Max(0f, searchY - searchGap - buttonsStartY);
 
-        if (topPanelHeight + buttonsHeight + searchHeight + (outerPadding * 2f) + headerGap + panelBottomGap > inRect.height)
+        float buttonGap = preferredButtonGap;
+        float buttonHeight = preferredButtonHeight;
+        if (visibleCategories.Count > 0)
         {
-            topPanelHeight = Mathf.Max(72f, inRect.height - buttonsHeight - searchHeight - (outerPadding * 2f) - headerGap - panelBottomGap);
+            float totalPreferredHeight = (visibleCategories.Count * preferredButtonHeight) + ((visibleCategories.Count - 1) * preferredButtonGap);
+            if (totalPreferredHeight > availableButtonsHeight)
+            {
+                float compressedGap = visibleCategories.Count > 1 ? 2f : 0f;
+                float compressedHeight = (availableButtonsHeight - ((visibleCategories.Count - 1) * compressedGap)) / visibleCategories.Count;
+                buttonGap = compressedGap;
+                buttonHeight = Mathf.Max(minButtonHeight, compressedHeight);
+            }
         }
 
-        Rect topPanelRect = new(inRect.x + outerPadding, inRect.y + outerPadding, inRect.width - (outerPadding * 2f), topPanelHeight);
-        MorrowindWindowSkin.DrawFlatPanel(topPanelRect, MorrowindUiResources.BackgroundTint);
+        Rect topPanelRect = new(inRect.x + outerPadding, inRect.y + outerPadding, buttonWidth, topPanelHeight);
+        MorrowindWindowSkin.DrawFlatPanel(topPanelRect, Color.black);
         MorrowindWindowSkin.DrawSubtleDivider(new Rect(topPanelRect.x, topPanelRect.yMax, topPanelRect.width, 1f));
 
-        float buttonsStartY = topPanelRect.yMax + headerGap;
-        float buttonWidth = inRect.width - (outerPadding * 2f);
         for (int i = 0; i < visibleCategories.Count; i++)
         {
             ArchitectCategoryTab category = visibleCategories[i];
@@ -71,14 +80,14 @@ public static class ArchitectMenuLayoutPatches
             bool mouseOver = Mouse.IsOver(buttonRect);
             bool clicked = Widgets.ButtonInvisible(buttonRect, true);
 
-            MorrowindWindowSkin.DrawArchitectCategoryButton(buttonRect, category.def.LabelCap, active, mouseOver);
+            MorrowindWindowSkin.DrawArchitectCategoryButton(buttonRect, category.def.LabelCap, active, mouseOver, buttonHeight >= 36f ? GameFont.Medium : GameFont.Small);
             if (clicked)
             {
                 ClickCategory(window, category);
             }
         }
 
-        Rect searchRect = new(inRect.x + outerPadding, inRect.yMax - searchHeight - outerPadding, inRect.width - (outerPadding * 2f), searchHeight);
+        Rect searchRect = new(inRect.x + outerPadding, searchY, buttonWidth, searchHeight);
         categorySearch = Widgets.TextField(searchRect, categorySearch ?? string.Empty);
 
         if (!string.IsNullOrEmpty(categorySearch))

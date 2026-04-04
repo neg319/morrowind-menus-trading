@@ -128,6 +128,7 @@ public static class MorrowindWindowSkin
             return;
         }
 
+        DrawDarkFill(rect, Color.black);
         Rect iconRect = rect.ContractedBy(Mathf.Max(1f, Mathf.Min(rect.width, rect.height) * 0.08f));
         Color old = GUI.color;
         GUI.color = active
@@ -161,6 +162,33 @@ public static class MorrowindWindowSkin
         GUI.color = oldColor;
     }
 
+
+    public static void DrawMainButtonLabel(Rect rect, string label, Color color)
+    {
+        if (string.IsNullOrEmpty(label))
+        {
+            return;
+        }
+
+        string displayLabel = label.Replace(" ", "\n");
+        GameFont font = displayLabel.Length > 10 ? GameFont.Tiny : GameFont.Small;
+
+        Color oldColor = GUI.color;
+        TextAnchor oldAnchor = Text.Anchor;
+        GameFont oldFont = Text.Font;
+        bool oldWordWrap = Text.WordWrap;
+
+        GUI.color = color;
+        Text.Anchor = TextAnchor.UpperCenter;
+        Text.Font = font;
+        Text.WordWrap = true;
+        Widgets.Label(rect, displayLabel);
+
+        Text.WordWrap = oldWordWrap;
+        Text.Anchor = oldAnchor;
+        Text.Font = oldFont;
+        GUI.color = oldColor;
+    }
 
     public static void DrawCommandGizmo(Rect rect, Texture icon, string label, string hotkeyLabel, Color iconColor, bool mouseOver, bool disabled)
     {
@@ -206,7 +234,7 @@ public static class MorrowindWindowSkin
         }
     }
 
-    public static void DrawArchitectCategoryButton(Rect rect, string label, bool active, bool mouseOver)
+    public static void DrawArchitectCategoryButton(Rect rect, string label, bool active, bool mouseOver, GameFont font)
     {
         Color textColor = active
             ? MorrowindUiResources.Gold
@@ -220,7 +248,7 @@ public static class MorrowindWindowSkin
             GUI.color = old;
         }
 
-        DrawCenteredText(rect, label, textColor, GameFont.Medium);
+        DrawCenteredText(rect, label, textColor, font);
     }
 
 

@@ -50,6 +50,7 @@ public static class MainButtonStylePatches
 
         string label = GetLabel(def);
         Texture icon = GetIcon(def);
+        Color contentColor = mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold;
 
         if (!string.IsNullOrWhiteSpace(label))
         {
@@ -59,19 +60,22 @@ public static class MainButtonStylePatches
         Rect contentRect = rect.ContractedBy(6f);
         if (icon != null && string.IsNullOrWhiteSpace(label))
         {
-            DrawCenteredIcon(contentRect, icon, mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold);
+            DrawCenteredIcon(contentRect, icon, contentColor);
             return;
         }
 
         if (icon != null)
         {
-            float iconSize = Mathf.Min(18f, contentRect.height - 4f);
-            Rect iconRect = new Rect(contentRect.x + 2f, contentRect.center.y - (iconSize * 0.5f), iconSize, iconSize);
-            DrawCenteredIcon(iconRect, icon, mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold);
-            contentRect.xMin = iconRect.xMax + 4f;
+            float iconSize = Mathf.Clamp(Mathf.Min(contentRect.width * 0.22f, contentRect.height * 0.28f), 12f, 18f);
+            Rect iconRect = new Rect(contentRect.center.x - (iconSize * 0.5f), contentRect.y + 2f, iconSize, iconSize);
+            DrawCenteredIcon(iconRect, icon, contentColor);
+
+            Rect labelRect = new Rect(contentRect.x + 2f, iconRect.yMax + 3f, contentRect.width - 4f, Mathf.Max(16f, contentRect.yMax - iconRect.yMax - 3f));
+            MorrowindWindowSkin.DrawMainButtonLabel(labelRect, label, contentColor);
+            return;
         }
 
-        MorrowindWindowSkin.DrawCenteredText(contentRect, label, mouseOver ? MorrowindUiResources.TextPrimary : MorrowindUiResources.Gold);
+        MorrowindWindowSkin.DrawMainButtonLabel(contentRect, label, contentColor);
     }
 
     private static void DrawCenteredIcon(Rect rect, Texture texture, Color color)
